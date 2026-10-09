@@ -1,0 +1,1396 @@
+/* ===== Final Repository Approval ===== */
+
+.fra-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.fra-summary-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: 1.25rem;
+  background: rgba(255,255,255,0.95);
+  border: 1px solid rgba(255,255,255,0.8);
+  box-shadow: var(--shadow-sm);
+}
+
+.fra-summary-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  min-width: 3rem;
+  height: 3rem;
+  border-radius: 0.9rem;
+  font-size: 1.15rem;
+}
+
+.fra-summary-pending .fra-summary-icon { background: #fef3c7; color: #b45309; }
+.fra-summary-review .fra-summary-icon { background: #dbeafe; color: #1e40af; }
+.fra-summary-approved .fra-summary-icon { background: #d1fae5; color: #047857; }
+.fra-summary-archived .fra-summary-icon { background: var(--surface); color: var(--text); }
+
+.fra-summary-body { display: grid; gap: 0.3rem; }
+
+.fra-summary-label {
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.fra-summary-value {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--primary);
+}
+
+.fra-summary-meta {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+/* Workflow Banner */
+.fra-workflow-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.15rem 1.25rem;
+  border-radius: 1.15rem;
+  background: linear-gradient(135deg, rgba(0,58,143,0.04), rgba(30,64,175,0.06));
+  border: 1px solid rgba(0,58,143,0.1);
+}
+
+.fra-workflow-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  min-width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 0.75rem;
+  background: rgba(0,58,143,0.1);
+  color: var(--primary);
+  font-size: 1rem;
+}
+
+.fra-workflow-body strong {
+  display: block;
+  font-size: 0.92rem;
+  color: var(--primary-dark);
+}
+
+.fra-workflow-body p {
+  margin-top: 0.3rem;
+  font-size: 0.86rem;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+/* Status Tabs */
+.fra-tabs-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.fra-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.7rem;
+  padding: 0 1rem;
+  border: 1px solid rgba(0,58,143,0.08);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.92);
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.fra-tab:hover { border-color: rgba(0,58,143,0.2); color: var(--primary); }
+
+.fra-tab.is-active {
+  background: linear-gradient(135deg, #003a8f, #1a1851);
+  border-color: rgba(26,24,81,0.86);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(0,58,143,0.18);
+}
+
+.fra-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: rgba(0,58,143,0.08);
+  color: var(--primary);
+}
+
+.fra-tab.is-active .fra-tab-count {
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+}
+
+/* Filter Bar */
+.fra-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.fra-filter-search {
+  position: relative;
+  flex: 1 1 280px;
+  max-width: 400px;
+}
+
+.fra-filter-search > i {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 0.86rem;
+}
+
+.fra-filter-input {
+  width: 100%;
+  height: 2.85rem;
+  padding: 0 1rem 0 2.65rem;
+  border: 1px solid var(--border);
+  border-radius: 0.95rem;
+  background: var(--surface);
+  transition: var(--transition);
+}
+
+.fra-filter-input:focus {
+  outline: none;
+  border-color: rgba(0,58,143,0.35);
+  box-shadow: 0 0 0 4px rgba(0,58,143,0.08);
+}
+
+.fra-filter-field { flex-shrink: 0; }
+
+.fra-filter-select {
+  height: 2.85rem;
+  padding: 0 0.95rem;
+  border: 1px solid var(--border);
+  border-radius: 0.95rem;
+  background: var(--surface);
+}
+
+.fra-filter-meta { margin-left: auto; }
+
+/* Record Cards (replaces the plain table for the review queue) */
+.fra-record-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.fra-record-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1.25rem 1.4rem 1.25rem 1.65rem;
+  border-radius: 1.1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.fra-record-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(0,58,143,0.18);
+}
+
+.fra-record-card::before {
+  content: '';
+  position: absolute;
+  top: 0.65rem;
+  bottom: 0.65rem;
+  left: 0;
+  width: 4px;
+  border-radius: 999px;
+  background: var(--warning);
+}
+
+.fra-record-card.is-published::before {
+  background: var(--success);
+}
+
+.fra-record-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.fra-record-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  min-width: 0;
+}
+
+.fra-record-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  min-width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 0.85rem;
+  background: rgba(0,58,143,0.08);
+  color: var(--primary);
+  font-size: 1.05rem;
+}
+
+.fra-record-card.is-published .fra-record-icon,
+.fra-record-icon.is-published {
+  background: rgba(16,185,129,0.12);
+  color: #047857;
+}
+
+.fra-record-titles { min-width: 0; }
+
+.fra-record-title {
+  display: block;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.fra-record-subtitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.fra-record-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.fra-record-body {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border-radius: 0.85rem;
+  background: var(--surface-alt, rgba(0,58,143,0.03));
+}
+
+.fra-record-field {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.fra-record-field span {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.fra-record-field strong {
+  font-size: 0.86rem;
+  color: var(--text);
+}
+
+.fra-record-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border);
+}
+
+.fra-record-footer-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* Table Styles */
+.fra-table th, .repo-table th {
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.fra-project-cell {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.fra-project-id {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: 0.04em;
+}
+
+.fra-project-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.fra-project-meta {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.fra-person-cell {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.fra-person-cell strong { font-size: 0.88rem; }
+.fra-person-cell span { font-size: 0.78rem; color: var(--muted); }
+
+.fra-action-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+/* Empty State */
+.fra-empty-state, .repo-empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 0.6rem;
+  padding: 3.5rem 1rem;
+  text-align: center;
+}
+
+.fra-empty-state > i, .repo-empty-state > i {
+  font-size: 2.2rem;
+  color: #cbd5e1;
+}
+
+.fra-empty-state strong, .repo-empty-state strong {
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.fra-empty-state p, .repo-empty-state p {
+  max-width: 360px;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+/* Review Modal */
+.fra-review-modal { width: min(800px, 100%); }
+
+.fra-review-layout { display: grid; gap: 1.4rem; }
+
+.fra-review-section { display: grid; gap: 0.6rem; }
+
+.fra-review-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--primary-dark);
+}
+
+.fra-review-notes {
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.fra-review-details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.fra-review-detail-item {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid rgba(231,229,228,0.9);
+  border-radius: 0.85rem;
+  background: rgba(255,255,255,0.9);
+}
+
+.fra-review-detail-item span {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.fra-review-detail-item strong {
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+/* Approval Chain */
+.fra-approval-chain { display: grid; gap: 0.75rem; }
+
+.fra-chain-title {
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: var(--primary-dark);
+}
+
+.fra-chain-steps { display: grid; gap: 0.55rem; }
+
+.fra-chain-step {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid rgba(231,229,228,0.9);
+  border-radius: 0.85rem;
+  background: var(--surface);
+}
+
+.fra-chain-step.is-complete {
+  border-color: rgba(16,185,129,0.25);
+  background: rgba(16,185,129,0.05);
+}
+
+.fra-chain-step.is-current {
+  border-color: rgba(0,58,143,0.25);
+  background: rgba(0,58,143,0.04);
+}
+
+.fra-chain-step.is-returned {
+  border-color: rgba(239,68,68,0.25);
+  background: rgba(239,68,68,0.04);
+}
+
+.fra-chain-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  min-width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 999px;
+  font-size: 0.86rem;
+}
+
+.fra-chain-step.is-complete .fra-chain-icon { background: #d1fae5; color: #047857; }
+.fra-chain-step.is-pending .fra-chain-icon { background: #fef3c7; color: #b45309; }
+.fra-chain-step.is-current .fra-chain-icon { background: #dbeafe; color: #1e40af; }
+.fra-chain-step.is-returned .fra-chain-icon { background: #fee2e2; color: #b91c1c; }
+
+.fra-chain-step strong { display: block; font-size: 0.86rem; }
+.fra-chain-step span { font-size: 0.8rem; color: var(--muted); }
+
+/* Files Preview */
+.fra-files-preview { display: grid; gap: 0.65rem; }
+.fra-files-preview > strong { font-size: 0.88rem; color: var(--primary-dark); }
+
+.fra-files-list { display: grid; gap: 0.4rem; }
+
+.fra-file-item {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid rgba(231,229,228,0.85);
+  border-radius: 0.75rem;
+  background: var(--surface);
+}
+
+.fra-file-item > i { color: #ef4444; }
+.fra-file-item > span { flex: 1; font-size: 0.84rem; color: var(--text); }
+
+/* Toast */
+.fra-toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.85rem 1.25rem;
+  border-radius: 1rem;
+  background: #0f172a;
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 700;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+  z-index: 9999;
+  animation: fra-toast-in 0.3s ease;
+}
+
+.fra-toast-success i { color: #34d399; }
+.fra-toast-warning i { color: #fbbf24; }
+.fra-toast-info i { color: #60a5fa; }
+
+@keyframes fra-toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ===== Official Repository ===== */
+
+/* Page: compact header → KPI row → one records card (toolbar, table, pagination).
+   Width follows the shell (viewport minus the collapsible sidebar); breakpoints are container
+   queries on .repo-page so they react to the sidebar state too. */
+.repo-page {
+  container-type: inline-size;
+  container-name: repo-page;
+  gap: 1rem;
+}
+
+.repo-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+}
+
+.repo-page-header h1 {
+  margin: 0;
+  color: var(--primary-dark);
+  font-family: inherit;
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.repo-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Compact buttons (colors from .btn-outline). */
+.repo-page .repo-btn {
+  gap: 0.45rem;
+  height: 2.25rem;
+  min-height: 2.25rem;
+  padding: 0 0.85rem;
+  border-radius: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.repo-page .repo-btn i {
+  font-size: 0.8rem;
+}
+
+.repo-page .repo-icon-btn {
+  width: 2rem;
+  height: 2rem;
+  min-height: 2rem;
+  padding: 0;
+  border-radius: 0.45rem;
+  font-size: 0.78rem;
+}
+
+/* Stats Grid */
+.repo-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.repo-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem 0.95rem;
+  border-radius: 0.75rem;
+  background: rgba(255,255,255,0.95);
+  border: 1px solid rgba(255,255,255,0.8);
+  box-shadow: var(--shadow-sm);
+}
+
+.repo-stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.6rem;
+  background: rgba(0,58,143,0.08);
+  color: var(--primary);
+  font-size: 0.9rem;
+}
+
+.repo-stat-body { display: grid; gap: 0.25rem; min-width: 0; }
+.repo-stat-label { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.repo-stat-value { font-size: 1.35rem; font-weight: 800; line-height: 1; letter-spacing: -0.04em; color: var(--primary); }
+
+/* Records card */
+.repo-page .repo-records {
+  border-radius: 0.75rem;
+}
+
+.repo-page .repo-records-head {
+  align-items: center;
+  padding: 0.85rem 1.1rem;
+}
+
+.repo-page .repo-records-head h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+/* Filter Bar (toolbar row inside the records card) */
+.repo-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.1rem;
+  border-bottom: 1px solid rgba(231, 229, 228, 0.8);
+}
+
+.repo-filter-search {
+  position: relative;
+  flex: 1 1 260px;
+  max-width: 420px;
+}
+
+.repo-filter-search > i {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 0.86rem;
+}
+
+.repo-filter-input {
+  width: 100%;
+  height: 2.25rem;
+  padding: 0 0.85rem 0 2.35rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  font-size: 0.84rem;
+  background: var(--surface);
+  transition: var(--transition);
+}
+
+.repo-filter-input:focus {
+  outline: none;
+  border-color: rgba(0,58,143,0.35);
+  box-shadow: 0 0 0 4px rgba(0,58,143,0.08);
+}
+
+.repo-filter-select {
+  height: 2.25rem;
+  padding: 0 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  font-size: 0.84rem;
+}
+
+.repo-filter-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+/* Document cells */
+.repo-doc-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.repo-doc-icon { color: var(--primary); font-size: 1.1rem; }
+
+.repo-doc-name {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.repo-doc-id {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.repo-type-pill {
+  display: inline-flex;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  background: rgba(0,58,143,0.06);
+  border: 1px solid rgba(0,58,143,0.1);
+  color: var(--primary);
+}
+
+.repo-action-group {
+  display: flex;
+  gap: 0.35rem;
+}
+
+/* Compact table rows (colors from the shared thead/tbody rules). */
+.repo-page .repo-table {
+  min-width: 960px;
+}
+
+.repo-page .repo-table th,
+.repo-page .repo-table td {
+  padding: 0.6rem 0.9rem;
+  vertical-align: middle;
+}
+
+.repo-page .repo-table th {
+  font-size: 0.7rem;
+}
+
+.repo-page .repo-table td {
+  font-size: 0.84rem;
+  white-space: nowrap;
+}
+
+.repo-page .repo-doc-cell {
+  gap: 0.6rem;
+}
+
+/* Text columns: text that doesn't fit is truncated with a right-edge fade (TruncatedText) instead
+   of widening the column or wrapping. The width goes on the text element itself because a table
+   cell sizes to its content's width. Each column has a minimum (--repo-col-width) and grows with
+   the page (--repo-col-share, in cqi = 1% of the .repo-page container), so a wider content area,
+   e.g. with the sidebar collapsed, shows more of each title. */
+.repo-page .repo-table td .truncated-text {
+  width: max(var(--repo-col-width, 13rem), var(--repo-col-share, 0px));
+}
+
+.repo-page .repo-table td.repo-col-name { --repo-col-width: 13rem; --repo-col-share: 12cqi; }
+.repo-page .repo-table td.repo-col-project { --repo-col-width: 16rem; --repo-col-share: 18cqi; }
+.repo-page .repo-table td.repo-col-people { --repo-col-width: 14rem; --repo-col-share: 14cqi; }
+.repo-page .repo-table td.repo-col-output { --repo-col-width: 12rem; --repo-col-share: 11cqi; }
+.repo-page .repo-table td.repo-col-title { --repo-col-width: 18rem; --repo-col-share: 24cqi; }
+.repo-page .repo-table td.repo-col-milestone { --repo-col-width: 11rem; --repo-col-share: 12cqi; }
+
+/* Research Head sidebar collapse/expand (see ResearchHeadShell).
+   - The main area's layout switches in one step; the shell animates the visible slide with a
+     composited transform.
+   - The fixed top bar moves in sync with the sidebar's own `width 0.2s ease`.
+   - Nothing animates until the shell sets data-sidebar-transitions="on" (two frames after mount),
+     so a newly opened page shows the saved collapsed/expanded state without the sidebar moving.
+   - While a toggle animates (data-sidebar-animating), the glass blur is dropped: re-blurring the
+     full-height sidebar and the top bar on every frame is what made the toggle stutter. */
+.student-shell.research-head-shell .student-global-main {
+  transition: none !important;
+}
+
+.student-shell.research-head-shell .student-global-navbar {
+  transition: left 0.2s ease, width 0.2s ease !important;
+}
+
+.student-shell.research-head-shell:not([data-sidebar-transitions='on']) :is(.student-global-sidebar, .student-global-navbar) {
+  transition: none !important;
+}
+
+.student-shell.research-head-shell[data-sidebar-animating] :is(.student-global-sidebar, .student-global-navbar) {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .student-shell.research-head-shell :is(.student-global-sidebar, .student-global-navbar) {
+    transition: none !important;
+  }
+}
+
+/* The shell caps page content at 1600px. Table pages built on .repo-page, and Research Head pages
+   that opt in with .rh-wide-page, use the full content area instead, so a collapsed sidebar on a
+   wide screen doesn't leave empty margins. */
+.student-shell .student-global-content:has(.repo-page, .rh-wide-page) {
+  max-width: none !important; /* overrides the shell's `max-width: 1600px !important` */
+}
+
+/* Milestone cell: truncated milestone name above a slim progress bar and percentage. */
+.repo-milestone-cell {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.repo-milestone-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.74rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.repo-milestone-progress .admin-progress-track {
+  flex: 1;
+  height: 0.35rem;
+}
+
+/* Record details modal (Intellectual Property, Project Inventory). Existing colors only. */
+.record-row-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.record-row-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  padding: 0.55rem 0;
+}
+
+.record-row-list li + li {
+  border-top: 1px solid rgba(231, 229, 228, 0.8);
+}
+
+.record-row-main {
+  display: grid;
+  gap: 0.1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.record-row-main .truncated-text {
+  color: var(--text);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.record-row-main .admin-note {
+  font-size: 0.76rem;
+}
+
+.record-progress-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--text);
+  font-size: 0.86rem;
+}
+
+.record-progress-line strong {
+  color: var(--primary);
+}
+
+.record-modal .btn.small {
+  min-height: 2rem;
+}
+
+/* Linked Project panel inside a record modal (details read from Project Inventory). */
+.record-linked-project {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.35rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(231, 229, 228, 0.9);
+  border-radius: 0.6rem;
+  background: rgba(0, 58, 143, 0.025);
+}
+
+.record-linked-project-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+}
+
+.record-linked-project-head strong {
+  color: var(--text);
+  font-size: 0.86rem;
+}
+
+.record-linked-project-head .admin-note {
+  font-size: 0.74rem;
+}
+
+.record-linked-project .admin-progress-track {
+  height: 0.4rem;
+  margin-top: 0.3rem;
+}
+
+/* Document completeness line and inline controls inside a record modal. */
+.record-doc-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.record-doc-summary .admin-note {
+  font-size: 0.78rem;
+}
+
+.record-modal .record-inline-select {
+  height: 2rem;
+  max-width: 100%;
+  font-size: 0.82rem;
+}
+
+.record-field-hint {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.74rem;
+  font-weight: 400;
+}
+
+/* Activity history: simple vertical timeline. */
+.record-timeline {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0 0 0 1rem;
+  list-style: none;
+  border-left: 2px solid rgba(0, 58, 143, 0.12);
+}
+
+.record-timeline li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  gap: 0.75rem;
+  font-size: 0.84rem;
+}
+
+.record-timeline li::before {
+  content: '';
+  position: absolute;
+  top: 0.4rem;
+  left: calc(-1rem - 5px);
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--primary);
+}
+
+.record-timeline-date {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.record-timeline-label {
+  color: var(--text);
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .record-timeline li { grid-template-columns: minmax(0, 1fr); gap: 0.1rem; }
+}
+
+/* Wide layout: overview fields across the top, then two side-by-side columns. */
+.modal-content.record-modal--wide {
+  width: min(1080px, 100%);
+}
+
+.record-details-list.record-details-list--4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.record-details-list.record-details-list--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.record-modal-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  gap: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(231, 229, 228, 0.8);
+}
+
+.record-modal-columns.record-modal-columns--even {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.record-modal-columns > .record-modal-section {
+  align-content: start;
+  padding-top: 0;
+  border-top: 0;
+}
+
+@media (max-width: 900px) {
+  .record-details-list.record-details-list--4,
+  .record-details-list.record-details-list--3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .record-modal-columns,
+  .record-modal-columns.record-modal-columns--even { grid-template-columns: minmax(0, 1fr); }
+}
+
+.record-modal .modal-body {
+  display: grid;
+  gap: 1rem;
+}
+
+.record-modal-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.record-modal-section {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.record-modal-section + .record-modal-section {
+  padding-top: 1rem;
+  border-top: 1px solid rgba(231, 229, 228, 0.8);
+}
+
+.record-modal-section h4 {
+  margin: 0;
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.record-details-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1.25rem;
+  margin: 0;
+}
+
+.record-details-list > div {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.record-details-list .record-details-wide {
+  grid-column: 1 / -1;
+}
+
+.record-details-list dt {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.record-details-list dd {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.record-list {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--text);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .record-details-list { grid-template-columns: minmax(0, 1fr); }
+}
+
+.repo-page-header .admin-note {
+  margin: 0.25rem 0 0;
+}
+
+/* Pagination */
+.repo-pagination-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.7rem 1.1rem;
+  border-top: 1px solid rgba(231, 229, 228, 0.8);
+}
+
+.repo-pagination-info {
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+/* Import */
+.repo-import-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 1rem 1.1rem;
+  border-radius: 0.95rem;
+  background: rgba(250,204,21,0.08);
+  border: 1px solid rgba(250,204,21,0.2);
+}
+
+.repo-import-notice > i { color: #b45309; font-size: 1.1rem; margin-top: 0.1rem; }
+.repo-import-notice strong { display: block; font-size: 0.9rem; color: #92400e; }
+.repo-import-notice p { margin-top: 0.2rem; font-size: 0.84rem; color: var(--muted); }
+
+.repo-import-dropzone {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  padding: 2.5rem 1rem;
+  border: 2px dashed rgba(0,58,143,0.18);
+  border-radius: 1rem;
+  background: rgba(0,58,143,0.02);
+  cursor: pointer;
+  text-align: center;
+  transition: var(--transition);
+}
+
+.repo-import-dropzone:hover {
+  border-color: rgba(0,58,143,0.35);
+  background: rgba(0,58,143,0.04);
+}
+
+.repo-import-dropzone > i { font-size: 2rem; color: var(--primary); }
+.repo-import-dropzone > p { font-size: 0.9rem; color: var(--text); font-weight: 700; }
+.repo-import-dropzone > span { font-size: 0.78rem; color: var(--muted); }
+
+/* ===== Responsive ===== */
+
+@media (max-width: 1100px) {
+  .fra-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fra-review-details { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 768px) {
+  .fra-summary-grid { grid-template-columns: 1fr; }
+  .fra-review-details { grid-template-columns: 1fr; }
+  .fra-tabs-bar { gap: 0.4rem; }
+  .fra-filter-bar { flex-direction: column; align-items: stretch; }
+  .fra-filter-search { max-width: 100%; }
+}
+
+/* Shared pieces for compact Research Head list pages (Approvals, Technology Transfer,
+   Final Repository Approval). */
+.repo-stats-grid.repo-stats-grid--4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+/* Queue tabs sitting in a records card header. */
+.repo-records-head .fra-tabs-bar {
+  gap: 0.4rem;
+}
+
+.repo-page .repo-records-head .fra-tab {
+  min-height: 2rem;
+  padding: 0 0.75rem;
+  font-size: 0.78rem;
+}
+
+.repo-page .repo-records-head .fra-tab-count {
+  min-width: 1.3rem;
+  height: 1.3rem;
+  font-size: 0.68rem;
+}
+
+/* Research Head notifications inbox: compact rows, icon | text | time + action. */
+.repo-page .repo-btn-sm {
+  height: 1.95rem;
+  min-height: 1.95rem;
+  padding: 0 0.7rem;
+  font-size: 0.78rem;
+}
+
+.notif-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 0.85rem 1.1rem;
+}
+
+.notif-item + .notif-item {
+  border-top: 1px solid rgba(231, 229, 228, 0.8);
+}
+
+.notif-item.is-unread {
+  background: rgba(0, 58, 143, 0.03);
+}
+
+.notif-icon {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 0.6rem;
+  background: rgba(0, 58, 143, 0.06);
+  font-size: 0.85rem;
+}
+
+.notif-body {
+  display: grid;
+  flex: 1;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.notif-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.notif-title-row strong {
+  color: var(--text);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.notif-item:not(.is-unread) .notif-title-row strong {
+  font-weight: 600;
+}
+
+.notif-unread-dot {
+  flex: 0 0 auto;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: var(--primary);
+}
+
+.notif-body p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.notif-meta {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.notif-side {
+  display: grid;
+  flex: 0 0 auto;
+  justify-items: end;
+  gap: 0.45rem;
+}
+
+.notif-side time {
+  color: var(--muted);
+  font-size: 0.76rem;
+  white-space: nowrap;
+}
+
+@container repo-page (max-width: 640px) {
+  .notif-item { flex-wrap: wrap; }
+  .notif-side { justify-items: start; width: 100%; padding-left: 2.95rem; }
+}
+
+/* Compact summary rows (label, counts, progress bar) laid out side by side. */
+.repo-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  padding: 0.9rem 1.1rem 1.1rem;
+}
+
+.repo-summary-item {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.repo-summary-item-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.repo-summary-item-head strong {
+  color: var(--text);
+  font-size: 0.86rem;
+}
+
+.repo-summary-item .admin-note {
+  font-size: 0.76rem;
+  white-space: nowrap;
+}
+
+.repo-summary-item .admin-progress-track {
+  height: 0.4rem;
+}
+
+/* Repository page: based on the content width, so collapsing the sidebar widens it. */
+@container repo-page (max-width: 1000px) {
+  .repo-stats-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .repo-stats-grid.repo-stats-grid--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .repo-summary-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@container repo-page (max-width: 640px) {
+  .repo-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .repo-filter-bar { flex-direction: column; align-items: stretch; }
+  .repo-filter-search { max-width: 100%; flex-basis: auto; }
+  .repo-filter-actions { margin-left: 0; }
+  .repo-pagination-row { flex-direction: column; align-items: flex-start; }
+}

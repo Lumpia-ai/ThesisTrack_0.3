@@ -1,0 +1,459 @@
+/* Research Focal Person workspace. Builds on the Research Head page kit (.repo-page, .record-*,
+   .notif-*, .fra-tab); only the pieces below are specific to this module. Existing colors only. */
+
+.focal-page .focal-link {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.focal-page .focal-link:hover {
+  text-decoration: underline;
+}
+
+.focal-page .focal-link strong {
+  color: inherit;
+}
+
+.focal-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: fit-content;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.focal-back-link:hover {
+  color: var(--primary);
+}
+
+/* Sidebar unread count */
+.focal-person-shell .focal-nav-count {
+  margin-left: auto;
+  min-width: 1.35rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1.35rem;
+  text-align: center;
+}
+
+.focal-person-shell.is-sidebar-collapsed .focal-nav-count {
+  display: none;
+}
+
+/* Dashboard */
+.focal-stats-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.focal-stat-link {
+  color: inherit;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.focal-stat-link:hover {
+  border-color: rgba(0, 58, 143, 0.2);
+}
+
+.focal-dash-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  gap: 1rem;
+}
+
+.focal-dash-grid > .admin-section-card {
+  margin: 0;
+}
+
+/* Status overview: one labeled bar per status (single hue). */
+.focal-status-bars {
+  display: grid;
+  gap: 0.85rem;
+  margin: 0;
+  padding: 1rem 1.1rem 1.2rem;
+  list-style: none;
+}
+
+.focal-status-bars li {
+  display: grid;
+  grid-template-columns: 11.5rem minmax(0, 1fr) 2rem;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.focal-status-bars-label {
+  color: var(--text);
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.focal-status-bars-track {
+  height: 0.6rem;
+  border-radius: 999px;
+  background: rgba(0, 58, 143, 0.06);
+  overflow: hidden;
+}
+
+.focal-status-bars-fill {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  border-radius: 999px;
+  background: var(--primary);
+}
+
+.focal-status-bars-value {
+  color: var(--text);
+  font-size: 0.88rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.focal-activity .notif-body .truncated-text {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.focal-activity {
+  padding-top: 0.7rem;
+  padding-bottom: 0.7rem;
+}
+
+/* Tables */
+.repo-page .focal-table td.focal-col-progress {
+  min-width: 9rem;
+}
+
+.repo-page .focal-history-table td.focal-col-remarks {
+  min-width: 16rem;
+  max-width: 28rem;
+  white-space: normal;
+}
+
+.repo-page .focal-compact-table {
+  min-width: 640px;
+}
+
+.focal-doc-ok {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.focal-doc-missing {
+  color: #b45309;
+  font-weight: 700;
+}
+
+/* Project details */
+.focal-project-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+}
+
+.focal-project-heading {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+  flex: 1 1 28rem;
+}
+
+.focal-project-heading h1 {
+  margin: 0;
+  color: var(--primary-dark);
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.focal-forward-action {
+  display: grid;
+  justify-items: end;
+  gap: 0.35rem;
+}
+
+.focal-action-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  max-width: 26rem;
+}
+
+.focal-action-hint i {
+  margin-right: 0.3rem;
+  color: var(--primary);
+}
+
+.focal-inline-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.focal-tab-panel {
+  padding: 1rem 1.1rem 1.2rem;
+}
+
+.focal-readonly-note {
+  margin: 0;
+  font-size: 0.76rem;
+}
+
+.focal-readonly-note i {
+  margin-right: 0.3rem;
+}
+
+.focal-abstract {
+  font-weight: 500 !important;
+  line-height: 1.6 !important;
+}
+
+.focal-returned-banner {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.95rem 1.1rem;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 0.75rem;
+  background: rgba(239, 68, 68, 0.05);
+  font-size: 0.86rem;
+}
+
+.focal-returned-banner p {
+  margin: 0;
+  color: var(--text);
+}
+
+.focal-returned-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--danger);
+}
+
+.focal-returned-head strong {
+  color: var(--text);
+}
+
+/* Progress tab */
+.focal-progress-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 2rem;
+}
+
+.focal-progress-overall {
+  display: grid;
+  gap: 0.3rem;
+  flex: 1 1 16rem;
+  max-width: 24rem;
+}
+
+.focal-milestone-counts {
+  display: flex;
+  gap: 1.5rem;
+  margin: 0;
+}
+
+.focal-milestone-counts div {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.focal-milestone-counts dt {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.focal-milestone-counts dd {
+  margin: 0;
+  color: var(--primary);
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+/* Validation tab */
+.focal-validation {
+  display: grid;
+  gap: 1rem;
+}
+
+.focal-validation-result {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem;
+  border-radius: 0.65rem;
+  border: 1px solid;
+}
+
+.focal-validation-result > i {
+  font-size: 1.3rem;
+}
+
+.focal-validation-result div {
+  display: grid;
+  gap: 0.1rem;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+.focal-validation-result strong {
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.focal-validation-result.is-complete {
+  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.06);
+}
+
+.focal-validation-result.is-complete > i {
+  color: var(--success);
+}
+
+.focal-validation-result.is-incomplete {
+  border-color: rgba(245, 158, 11, 0.35);
+  background: rgba(245, 158, 11, 0.07);
+}
+
+.focal-validation-result.is-incomplete > i {
+  color: #b45309;
+}
+
+.focal-checklist {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.focal-checklist > li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.6rem 0;
+}
+
+.focal-checklist > li + li {
+  border-top: 1px solid rgba(231, 229, 228, 0.8);
+}
+
+.focal-checklist > li > i {
+  margin-top: 0.12rem;
+  font-size: 1.05rem;
+}
+
+.focal-checklist > li.is-passed > i {
+  color: var(--success);
+}
+
+.focal-checklist > li.is-failed > i {
+  color: #b45309;
+}
+
+.focal-checklist-label {
+  color: var(--text);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.focal-checklist-missing {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0.3rem 0 0;
+  padding-left: 1.1rem;
+  color: #b45309;
+  font-size: 0.8rem;
+}
+
+.focal-note textarea {
+  width: 100%;
+  resize: vertical;
+}
+
+.focal-note textarea[readonly] {
+  background: rgba(0, 58, 143, 0.03);
+  color: var(--muted);
+}
+
+.focal-note-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.4rem;
+}
+
+.focal-validation .focal-forward-action {
+  justify-items: start;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(231, 229, 228, 0.8);
+}
+
+/* Returned list */
+.focal-returned-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.focal-returned-card {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding: 1rem 1.1rem;
+  border-radius: 0.75rem;
+}
+
+.focal-returned-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.focal-returned-card-head > div:first-child {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.focal-returned-card-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(231, 229, 228, 0.8);
+}
+
+@container repo-page (max-width: 1100px) {
+  .focal-stats-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .focal-dash-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@container repo-page (max-width: 640px) {
+  .focal-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .focal-status-bars li { grid-template-columns: 8.5rem minmax(0, 1fr) 2rem; }
+  .focal-forward-action { justify-items: start; }
+}

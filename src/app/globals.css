@@ -1,0 +1,344 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  html,
+  body {
+    @apply m-0 p-0;
+  }
+
+  :root {
+    color-scheme: light;
+    --font-sans: 'Inter', sans-serif;
+    --font-serif: 'Playfair Display', Georgia, serif;
+    --font-student: 'Poppins', sans-serif;
+    --color-primary: #003A8F;
+    --color-secondary: #1E40AF;
+    --color-accent: #F6BE00;
+    --color-background: #F8FAFC;
+    --color-surface: #FFFFFF;
+    --color-sidebar: #0F3B82;
+    --color-navbar: #FFFFFF;
+    --color-text-primary: #111827;
+    --color-text-secondary: #64748B;
+    --color-border: #E5E7EB;
+    --color-success: #16A34A;
+    --color-warning: #F59E0B;
+    --color-error: #DC2626;
+    --color-info: #2563EB;
+    --color-primary-hover: #002C6B;
+    /* Shared "explore" gradient: homepage CTA banner + About the System hero (Tailwind: bg-explore). */
+    --gradient-explore: linear-gradient(90deg, #EAF1FB 0%, #FFF4D6 100%);
+    --color-primary-light: #DBEAFE;
+    --color-primary-dark: #1A1851;
+    --color-border-suggestion: #BFDBFE;
+    --color-background-suggestion: #EFF6FF;
+    --primary: var(--color-primary);
+    --secondary: var(--color-secondary);
+    --accent: var(--color-accent);
+    --bg: var(--color-background);
+    --panel: var(--color-surface);
+    --text: var(--color-text-primary);
+    --muted: var(--color-text-secondary);
+    --border: var(--color-border);
+    --success: var(--color-success);
+    --warning: var(--color-warning);
+    --danger: var(--color-error);
+    --info: var(--color-info);
+    --primary-light: var(--color-primary-light);
+    --primary-dark: var(--color-primary-dark);
+    --hover: var(--color-primary-hover);
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  body {
+    @apply min-h-screen font-sans text-gray-900;
+    background: var(--color-background);
+    color: var(--color-text-primary);
+    text-rendering: optimizeLegibility;
+  }
+
+  a {
+    @apply text-inherit;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+}
+
+.session-suspension-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(8px);
+}
+
+.session-suspension-modal {
+  width: min(460px, 100%);
+  display: grid;
+  gap: 1rem;
+  padding: 1.35rem;
+  border: 1px solid rgba(254, 202, 202, 0.9);
+  border-radius: 1.15rem;
+  background: #ffffff;
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.28);
+  font-family: var(--font-sans), Arial, sans-serif;
+}
+
+.session-suspension-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border: 1px solid #fecaca;
+  border-radius: 1rem;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 1.15rem;
+}
+
+.session-suspension-kicker {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #991b1b;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.session-suspension-modal h2 {
+  margin: 0;
+  color: #111827;
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
+.session-suspension-modal p {
+  margin: 0.6rem 0 0;
+  color: #475569;
+  font-size: 0.94rem;
+  line-height: 1.6;
+}
+
+.session-suspension-modal p strong {
+  color: #991b1b;
+}
+
+.session-suspension-countdown {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid #fee2e2;
+  border-radius: 0.9rem;
+  background: #fff7f7;
+}
+
+.session-suspension-countdown span {
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.session-suspension-countdown strong {
+  color: #991b1b;
+  font-size: 0.92rem;
+}
+
+.session-suspension-button {
+  min-height: 2.8rem;
+  border: 0;
+  border-radius: 0.9rem;
+  background: #003a8f;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 850;
+  box-shadow: 0 16px 34px rgba(0, 58, 143, 0.22);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.session-suspension-button:hover,
+.session-suspension-button:focus-visible {
+  outline: none;
+  transform: translateY(-1px);
+  box-shadow: 0 20px 38px rgba(0, 58, 143, 0.26);
+}
+
+@layer utilities {
+  @keyframes page-transition {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+    .animate-page-transition {
+      animation: page-transition 0.4s ease-out forwards;
+    }
+
+    @keyframes shimmer-sweep {
+      0% { transform: translateX(-150%) skewX(-20deg); }
+      100% { transform: translateX(250%) skewX(-20deg); }
+    }
+
+    @keyframes success-bounce {
+      0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+      50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    }
+
+    .btn-premium {
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-premium:hover {
+      transform: scale(1.02);
+      filter: brightness(1.05);
+    }
+    
+    .btn-premium:active {
+      transform: scale(0.96);
+      filter: brightness(0.95);
+    }
+
+    .btn-premium::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 255, 255, 0) 100%
+      );
+      transform: translateX(-150%) skewX(-20deg);
+      transition: none;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .btn-premium:hover::after {
+      animation: shimmer-sweep 1.5s infinite;
+    }
+
+    .btn-premium-loading {
+      pointer-events: none;
+      opacity: 0.85;
+    }
+
+    .btn-premium-loading > * {
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .btn-premium-loading::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 1.25rem;
+      height: 1.25rem;
+      margin-top: -0.625rem;
+      margin-left: -0.625rem;
+      border: 2.5px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      z-index: 10;
+    }
+
+    .btn-premium-success {
+      background: var(--color-success) !important;
+      background-image: none !important;
+      border-color: var(--color-success) !important;
+      pointer-events: none;
+    }
+
+    .btn-premium-success > * {
+      opacity: 0;
+    }
+
+    .btn-premium-success::before {
+      content: '✔';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-weight: 900;
+      font-size: 1.1rem;
+      animation: success-bounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      z-index: 10;
+    }
+  }
+
+  @media screen {
+    .print-only {
+      display: none !important;
+    }
+  }
+
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    .print-only, .print-only * {
+      visibility: visible;
+    }
+    .print-only {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  }
+
+/* TruncatedText (components/shared/truncated-text.tsx), usable on any page. Single line, never
+   widens its container; when the text overflows, the component sets data-overflowing and the
+   right edge fades out. No animation. */
+.truncated-text {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: clip;
+}
+
+.truncated-text[data-overflowing='true'] {
+  text-overflow: clip; /* the fade replaces any ellipsis a page style may add */
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
+}

@@ -1,0 +1,472 @@
+/*
+ * Shared System Admin UI, themed like the public landing page (kicker pill, two-tone
+ * headings in Inter, module-style cards with a colored top border, tinted icon tiles).
+ *
+ * Every color derives from the Theme & Branding variables (--color-*), so branding changes apply.
+ * The --sa-* tokens below are set once on .adminPage and switched for the dark portal theme.
+ */
+
+/* ---------- Page wrapper + theme tokens ---------- */
+.adminPage {
+  --sa-surface: var(--color-surface);
+  --sa-border: color-mix(in srgb, var(--color-primary) 12%, var(--color-border));
+  --sa-text: var(--color-text-primary);
+  --sa-muted: var(--color-text-secondary);
+  --sa-primary-text: var(--color-primary);
+  /* Accent gold darkened for text contrast on light surfaces (≈3.8:1 on white, for large text). */
+  --sa-accent-text: color-mix(in srgb, var(--color-accent) 62%, var(--color-text-primary));
+  --sa-success-text: var(--color-success);
+  --sa-error-text: var(--color-error);
+  --sa-shadow: 0 1px 2px color-mix(in srgb, var(--color-text-primary) 6%, transparent);
+  /* Inter (loaded in app/layout.tsx as --font-sans): a neutral UI face with fixed-width digits available. */
+  --sa-font: var(--font-sans), 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  display: grid;
+  gap: 1.25rem;
+  color: var(--sa-text);
+  font-family: var(--sa-font);
+  -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * Dark portal theme (profile menu toggle sets html[data-student-theme="dark"]). The dark theme
+ * defines no --color-* values for admin pages, so dark surfaces mix the brand primary into a
+ * dark base; text colors reuse the portal's existing dark palette.
+ */
+/* Uses the calm System Admin dark palette (--sad-*, styles/system-admin-dark.css) when present:
+   neutral slate surfaces with a faint brand tint instead of saturated navy. */
+:global(html[data-student-theme='dark']) .adminPage {
+  --sa-surface: var(--sad-surface, #131a24);
+  --sa-border: var(--sad-border, #232d3b);
+  --sa-text: var(--sad-text, #e3e8ef);
+  --sa-muted: var(--sad-muted, #93a0b3);
+  --sa-primary-text: var(--sad-primary-strong, #a9c4ff);
+  --sa-accent-text: var(--color-accent);
+  --sa-success-text: #4ade80;
+  --sa-error-text: #f87171;
+  --sa-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+}
+
+/* Page background: a light tint of the primary color behind admin pages (the portal shell's
+   content panel is transparent by default; this only applies when it contains an admin page). */
+:global(.student-shell .student-global-content):has(.adminPage) {
+  background: color-mix(in srgb, var(--color-primary) 4%, var(--color-surface)) !important;
+}
+
+/* Wide pages use the full content area instead of the shell's `max-width: 1600px !important`,
+   so a collapsed sidebar on a wide screen doesn't leave empty margins. */
+:global(.student-shell .student-global-content):has(.adminPageWide) {
+  max-width: none !important;
+}
+
+:global(html[data-student-theme='dark'] .student-shell .student-global-content):has(.adminPage) {
+  background: transparent !important;
+}
+
+/* ---------- Page header ---------- */
+.pageHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem 1.5rem;
+}
+
+.pageHeaderText {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 18rem;
+  justify-items: start;
+  gap: 0.55rem;
+}
+
+/* Same treatment as the landing page's .sectionKicker: pill with a leading dot. */
+.kicker {
+  display: inline-flex;
+  min-height: 1.8rem;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 16%, var(--sa-surface));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--sa-surface));
+  color: var(--sa-primary-text);
+  padding: 0.28rem 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.kicker::before {
+  content: '';
+  width: 0.38rem;
+  height: 0.38rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.pageTitle {
+  margin: 0;
+  font-family: var(--sa-font);
+  font-size: clamp(1.7rem, 2.3vw, 2.1rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+
+.pageTitleMain {
+  color: var(--sa-primary-text);
+}
+
+.pageTitleAccent {
+  color: var(--sa-accent-text);
+}
+
+.pageDescription {
+  margin: 0;
+  color: var(--sa-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.pageHeaderActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  /* Stays right-aligned when the header has no heading text. */
+  margin-left: auto;
+}
+
+/* ---------- Action links (pill buttons) ---------- */
+.actionLink {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1.5px solid transparent;
+  border-radius: 999px;
+  padding: 0 1.15rem;
+  font-size: 0.875rem;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.actionLink:hover {
+  transform: translateY(-1px);
+}
+
+.actionLink:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.actionLink:focus-visible,
+.textLink:focus-visible {
+  outline: 2px solid var(--sa-primary-text);
+  outline-offset: 3px;
+}
+
+.actionPrimary {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.actionPrimary:hover {
+  border-color: var(--color-primary-hover, var(--color-primary));
+  background: var(--color-primary-hover, var(--color-primary));
+}
+
+/* White pill with a gold outline and navy text (like the landing navbar's sign-up button). */
+.actionSecondary {
+  border-color: var(--color-accent);
+  background: var(--sa-surface);
+  color: var(--sa-primary-text);
+}
+
+.actionSecondary:hover {
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--sa-surface));
+}
+
+.textLink {
+  border-radius: 0.3rem;
+  color: var(--sa-primary-text);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.textLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---------- Cards (landing module-card style: white, rounded, light border, 3px top stripe) ---------- */
+.card {
+  border: 1px solid var(--sa-border);
+  border-top-width: 3px;
+  border-radius: 0.75rem;
+  background: var(--sa-surface);
+  box-shadow: var(--sa-shadow);
+}
+
+.cardPrimary {
+  border-top-color: var(--color-primary);
+}
+
+.cardAccent {
+  border-top-color: var(--color-accent);
+}
+
+/* ---------- Icon tile (tinted rounded square) ---------- */
+.iconTile {
+  display: inline-flex;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.65rem;
+  font-size: 0.9rem;
+}
+
+.tilePrimary {
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--sa-surface));
+  color: var(--sa-primary-text);
+}
+
+.tileAccent {
+  background: color-mix(in srgb, var(--color-accent) 18%, var(--sa-surface));
+  color: var(--sa-accent-text);
+}
+
+.tileError {
+  background: color-mix(in srgb, var(--color-error) 10%, var(--sa-surface));
+  color: var(--sa-error-text);
+}
+
+.tileSuccess {
+  background: color-mix(in srgb, var(--color-success) 12%, var(--sa-surface));
+  color: var(--sa-success-text);
+}
+
+/* ---------- KPI card ---------- */
+/* The card is a size container so its layout follows its own width (sidebar state, grid columns),
+   not just the viewport: number beside the visual when there's room, stacked when there isn't. */
+.kpiCard {
+  container-type: inline-size;
+  padding: 1.1rem 1.25rem;
+}
+
+.kpiBody {
+  display: grid;
+  height: 100%;
+  gap: 1rem 1.5rem;
+}
+
+@container (min-width: 26rem) {
+  .kpiBodySplit {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    align-items: center;
+  }
+
+  .kpiBodySplit .kpiExtra {
+    border-left: 1px solid var(--sa-border);
+    padding-left: 1.5rem;
+  }
+}
+
+.kpiMain {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+}
+
+.kpiHead {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.kpiLabel {
+  color: var(--sa-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.kpiValue {
+  margin-top: 0.15rem;
+  color: var(--sa-primary-text);
+  font-size: 2.15rem;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.kpiValueError {
+  color: var(--sa-error-text);
+}
+
+.kpiHelper {
+  color: var(--sa-muted);
+  font-size: 0.8rem;
+}
+
+/* Positive change shown as a small green chip. */
+.kpiChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-success) 13%, var(--sa-surface));
+  color: var(--sa-success-text);
+  padding: 0.2rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.kpiExtra {
+  min-width: 0;
+}
+
+.kpiLink {
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.kpiLink:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 28%, var(--sa-border));
+  box-shadow: 0 10px 24px -14px color-mix(in srgb, var(--color-primary) 45%, transparent);
+  transform: translateY(-2px);
+}
+
+.kpiLink:focus-visible {
+  outline: 2px solid var(--sa-primary-text);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kpiLink {
+    transition: none;
+  }
+
+  .kpiLink:hover {
+    transform: none;
+  }
+}
+
+/* ---------- Section card ---------- */
+.sectionCard {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  /* Fixed height whether or not the header has an action (e.g. filter tabs), so cards side by side line up. */
+  min-height: 3.6rem;
+  border-bottom: 1px solid var(--sa-border);
+  padding: 0.55rem 1.2rem;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: var(--sa-primary-text);
+  font-family: var(--sa-font);
+  font-size: 1.02rem;
+  letter-spacing: -0.01em;
+  font-weight: 700;
+}
+
+/* Flex column so a footer can pin to the bottom with margin-top: auto. */
+.sectionBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 0.35rem 1.2rem 1rem;
+}
+
+/* ---------- Empty state ---------- */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.75rem 1rem;
+  color: var(--sa-muted);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.emptyStateIcon {
+  display: inline-flex;
+  width: 2.25rem;
+  height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.65rem;
+  background: color-mix(in srgb, var(--sa-muted) 14%, var(--sa-surface));
+}
+
+/* ---------- Status pill ---------- */
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.statusPillSuccess {
+  background: color-mix(in srgb, var(--color-success) 14%, var(--sa-surface));
+  color: var(--sa-success-text);
+}
+
+.statusPillError {
+  background: color-mix(in srgb, var(--color-error) 12%, var(--sa-surface));
+  color: var(--sa-error-text);
+}
+
+.statusPillNeutral {
+  background: color-mix(in srgb, var(--sa-muted) 14%, var(--sa-surface));
+  color: var(--sa-muted);
+}
+
+/*
+ * The portal's dark theme forces every h1–h4/strong inside page content to near-white and makes
+ * p/span/small/label inherit (student-workspace.css ~19274–19297, specificity 0,3,2). These
+ * re-apply our semantic colors with a more specific selector (0,4,1) so they survive dark mode.
+ */
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .kicker { color: var(--sa-primary-text); }
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .pageTitleMain { color: var(--sa-primary-text); }
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .pageTitleAccent { color: var(--sa-accent-text); }
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .sectionTitle { color: var(--sa-primary-text); }
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .kpiLabel,
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .kpiHelper { color: var(--sa-muted); }
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .kpiValue { color: var(--sa-primary-text); }
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .kpiValueError { color: var(--sa-error-text); }
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .kpiChip { color: var(--sa-success-text); }
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .tilePrimary { color: var(--sa-primary-text); }
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .tileAccent { color: var(--sa-accent-text); }
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .tileError { color: var(--sa-error-text); }
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .tileSuccess { color: var(--sa-success-text); }
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .statusPillSuccess { color: var(--sa-success-text); }
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .statusPillError { color: var(--sa-error-text); }
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .statusPillNeutral { color: var(--sa-muted); }
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .emptyStateIcon { color: var(--sa-muted); }

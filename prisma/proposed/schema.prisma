@@ -1,0 +1,1015 @@
+// PROPOSED schema for review (Stage 2). Not used by the app or by `prisma generate`:
+// the live schema stays prisma/schema.prisma until the migration is approved for production.
+// The generator writes to a throwaway folder so a stray `generate` can't replace the real client.
+generator client {
+  provider = "prisma-client"
+  output   = "./.generated-client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN         @map("admin")
+  SYSTEM_ADMIN  @map("system_admin")
+  RESEARCH_HEAD @map("research_head")
+  STUDENT       @map("student")
+  ADVISER       @map("adviser")
+  PANEL         @map("panel")
+  PROGRAM_HEAD  @map("program_head")
+  PARTNER       @map("partner")
+  TECH_TRANSFER @map("tech_transfer")
+  LIBRARY       @map("library")
+  FOCAL_PERSON  @map("focal_person")
+  SECRETARY     @map("secretary")
+}
+
+// SUSPENDED is not listed: suspension stays on User.isSuspended / suspendedUntil (timed, auto-restoring)
+// and blocks access regardless of accountStatus.
+enum AccountStatus {
+  PENDING_VERIFICATION    @map("pending_verification")
+  PENDING_ROLE_ASSIGNMENT @map("pending_role_assignment")
+  ACTIVE                  @map("active")
+  REJECTED                @map("rejected")
+}
+
+enum VerificationDocumentType {
+  STUDENT_ID                  @map("student_id")
+  CERTIFICATE_OF_REGISTRATION @map("certificate_of_registration")
+  EMPLOYEE_ID                 @map("employee_id")
+  APPOINTMENT_OR_DESIGNATION  @map("appointment_or_designation")
+  GOVERNMENT_ID               @map("government_id")
+  COMPANY_AUTHORIZATION       @map("company_authorization")
+}
+
+enum AccountApplicationStatus {
+  PENDING  @map("pending")
+  VERIFIED @map("verified")
+  REJECTED @map("rejected")
+}
+
+enum RoleAssignmentStatus {
+  ACTIVE  @map("active")
+  REVOKED @map("revoked")
+}
+
+enum BrandingAssetType {
+  SYSTEM_LOGO
+  SCHOOL_LOGO
+  LANDING_IMAGE
+  CERTIFICATE_LOGO
+  OTHER
+}
+
+enum GroupLifecycleStatus {
+  PENDING        @map("pending")
+  ACTIVE         @map("active")
+  NEEDS_REVISION @map("needs_revision")
+  AT_RISK        @map("at_risk")
+  COMPLETED      @map("completed")
+  ARCHIVED       @map("archived")
+}
+
+enum GroupMemberRole {
+  LEADER @map("leader")
+  MEMBER @map("member")
+}
+
+enum ProjectStatus {
+  DRAFT             @map("draft")
+  SUBMITTED         @map("submitted")
+  UNDER_REVIEW      @map("under_review")
+  APPROVED          @map("approved")
+  NEEDS_REVISION    @map("needs_revision")
+  DEFENSE_SCHEDULED @map("defense_scheduled")
+  COMPLETED         @map("completed")
+  ARCHIVED          @map("archived")
+}
+
+enum MilestoneStatus {
+  PENDING        @map("pending")
+  IN_PROGRESS    @map("in_progress")
+  SUBMITTED      @map("submitted")
+  APPROVED       @map("approved")
+  NEEDS_REVISION @map("needs_revision")
+  OVERDUE        @map("overdue")
+  COMPLETED      @map("completed")
+}
+
+enum MilestoneCheckpointStatus {
+  LOCKED         @map("locked")
+  PENDING        @map("pending")
+  SUBMITTED      @map("submitted")
+  IN_REVIEW      @map("in_review")
+  NEEDS_REVISION @map("needs_revision")
+  APPROVED       @map("approved")
+  COMPLETED      @map("completed")
+}
+
+enum MilestoneCheckpointReviewStatus {
+  NOT_REQUIRED   @map("not_required")
+  PENDING        @map("pending")
+  IN_REVIEW      @map("in_review")
+  APPROVED       @map("approved")
+  NEEDS_REVISION @map("needs_revision")
+}
+
+enum SubmissionStatus {
+  SUBMITTED      @map("submitted")
+  UNDER_REVIEW   @map("under_review")
+  APPROVED       @map("approved")
+  NEEDS_REVISION @map("needs_revision")
+  REJECTED       @map("rejected")
+  ARCHIVED       @map("archived")
+}
+
+enum ReviewDecision {
+  COMMENT         @map("comment")
+  APPROVE         @map("approve")
+  REQUEST_CHANGES @map("request_changes")
+  REJECT          @map("reject")
+}
+
+enum DefenseStatus {
+  SCHEDULED   @map("scheduled")
+  // The chair has started the live session — panelists can now fill in the
+  // stage's rating sheet (see src/lib/defense-rating-forms.ts).
+  IN_PROGRESS @map("in_progress")
+  RESCHEDULED @map("rescheduled")
+  COMPLETED   @map("completed")
+  CANCELLED   @map("cancelled")
+}
+
+enum AdviserScheduleItemType {
+  CONSULTATION @map("consultation")
+  DEADLINE     @map("deadline")
+  MEETING      @map("meeting")
+  REMINDER     @map("reminder")
+  EVENT        @map("event")
+  REVIEW       @map("review")
+}
+
+enum AdviserScheduleItemStatus {
+  SCHEDULED @map("scheduled")
+  COMPLETED @map("completed")
+  CANCELLED @map("cancelled")
+}
+
+enum EvaluationRecommendation {
+  PENDING      @map("pending")
+  PASSED       @map("passed")
+  PASSED_MINOR @map("passed_minor")
+  PASSED_MAJOR @map("passed_major")
+  REDEFENSE    @map("redefense")
+  FAILED       @map("failed")
+}
+
+enum DefensePanelRole {
+  CHAIR  @map("chair")
+  MEMBER @map("member")
+}
+
+enum DefenseChairDecision {
+  REDEFENSE @map("redefense")
+  NEW_TITLE @map("new_title")
+  // Chair overrides the panel vote and approves the defense anyway, despite
+  // enough No votes to have failed it otherwise — their call is final.
+  APPROVED  @map("approved")
+  // The original title was rejected, but the group immediately presented a
+  // backup title in this same sitting and the chair is clearing it right now —
+  // no separate reschedule, no new DefenseSchedule row. Distinct from
+  // NEW_TITLE (which still requires the group to submit a replacement and go
+  // through a freshly scheduled presentation/panel vote later).
+  NEW_TITLE_APPROVED @map("new_title_approved")
+}
+
+enum ComplianceStatus {
+  UNDER_REVIEW   @map("under_review")
+  NEEDS_REVISION @map("needs_revision")
+  APPROVED       @map("approved")
+}
+
+enum ComplianceReviewStatus {
+  PENDING        @map("pending")
+  VERIFIED       @map("verified")
+  NEEDS_REVISION @map("needs_revision")
+}
+
+enum NotificationStatus {
+  UNREAD   @map("unread")
+  READ     @map("read")
+  ARCHIVED @map("archived")
+}
+
+model User {
+  id                   String                @id @default(cuid())
+  email                String                @unique
+  passwordHash         String?
+  supabaseId           String?               @unique
+  googleSub            String?               @unique
+  name                 String
+  firstName            String?
+  lastName             String?
+  studentId            String?               @unique
+  department           String?
+  yearLevel            String?
+  role                 UserRole              @default(STUDENT)
+  contactNumber        String?
+  address              String?
+  birthDate            String?
+  profileImage         String?
+  section              String?
+  accountSummary       String?
+  office               String?
+  displayName          String?
+  isSuspended          Boolean               @default(false)
+  suspendedAt          DateTime?
+  suspendedUntil       DateTime?
+  passwordResetTokens  PasswordResetToken[]
+  passwordResetCodes   PasswordResetCode[]
+  uploadedFiles        UploadedFile[]
+  groupMemberships     GroupMember[]
+  ownedProjects        Project[]             @relation("ProjectOwner")
+  advisedProjects      Project[]             @relation("ProjectAdviser")
+  submissions          Submission[]          @relation("SubmissionSubmitter")
+  progressReports      ProgressReport[]      @relation("ProgressReportSubmitter")
+  reviewComments       ReviewComment[]       @relation("ReviewCommentAuthor")
+  resolvedComments     ReviewComment[]       @relation("ReviewCommentResolver")
+  scheduledDefenses    DefenseSchedule[]     @relation("DefenseScheduler")
+  secretaryDefenses    DefenseSchedule[]     @relation("DefenseSecretary")
+  adviserScheduleItems AdviserScheduleItem[] @relation("AdviserScheduleCreator")
+  evaluations          Evaluation[]          @relation("EvaluationEvaluator")
+  complianceSubmissions ComplianceSubmission[] @relation("ComplianceSubmitter")
+  complianceReviews    ComplianceReview[]    @relation("ComplianceReviewer")
+  notifications        Notification[]
+  auditLogs            AuditLog[]            @relation("AuditActor")
+  brandingAssets       BrandingAsset[]       @relation("UserBrandingAssets")
+  academicActivities   AcademicActivity[]
+  updatedTitleDrafts   TitleDraft[]          @relation("TitleDraftUpdatedBy")
+  reviewedTitleDrafts  TitleDraft[]          @relation("TitleDraftReviewedBy")
+  // Existing users are backfilled to ACTIVE; new registrations start at PENDING_VERIFICATION.
+  accountStatus          AccountStatus        @default(PENDING_VERIFICATION)
+  applications           AccountApplication[] @relation("ApplicationApplicant")
+  reviewedApplications   AccountApplication[] @relation("ApplicationReviewer")
+  roleAssignments        UserRoleAssignment[] @relation("RoleAssignee")
+  grantedRoleAssignments UserRoleAssignment[] @relation("RoleGrantor")
+  revokedRoleAssignments UserRoleAssignment[] @relation("RoleRevoker")
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+
+  @@index([role])
+  @@index([isSuspended])
+  @@index([suspendedUntil])
+  @@index([department])
+  @@index([accountStatus])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model PasswordResetCode {
+  id             String    @id @default(cuid())
+  codeHash       String
+  resetTokenHash String?   @unique
+  expiresAt      DateTime
+  usedAt         DateTime?
+  verifiedAt     DateTime?
+  attempts       Int       @default(0)
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_reset_codes")
+}
+
+model UploadedFile {
+  id               String               @id @default(cuid())
+  secureUrl        String?              @map("secure_url")
+  publicId         String?              @unique @map("public_id")
+  fileName         String               @map("file_name")
+  filePath         String?              @map("file_path")
+  bucketName       String?              @map("bucket_name")
+  fileType         String               @map("file_type")
+  resourceType     String?              @map("resource_type")
+  documentCategory String               @default("Uncategorized") @map("document_category")
+  category         String               @default("Uncategorized")
+  visibility       String               @default("private")
+  size             Int?                 @map("file_size")
+  userId           String               @map("uploaded_by")
+  user             User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId        String?              @map("project_id")
+  project          Project?             @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  submissionId     String?              @map("submission_id")
+  submission       Submission?          @relation(fields: [submissionId], references: [id], onDelete: SetNull)
+  checkpointId     String?              @map("checkpoint_id")
+  checkpoint       MilestoneCheckpoint? @relation(fields: [checkpointId], references: [id], onDelete: SetNull)
+  activityId       String?              @map("activity_id")
+  activity         AcademicActivity?    @relation(fields: [activityId], references: [id], onDelete: SetNull)
+  titleDraftId     String?              @map("title_draft_id")
+  titleDraft       TitleDraft?          @relation(fields: [titleDraftId], references: [id], onDelete: Cascade)
+  complianceSubmission ComplianceSubmission?
+  accountApplication   AccountApplication? @relation("ApplicationDocumentFront")
+  accountApplicationBack AccountApplication? @relation("ApplicationDocumentBack")
+  createdAt        DateTime             @default(now()) @map("created_at")
+  updatedAt        DateTime             @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([submissionId])
+  @@index([checkpointId])
+  @@index([activityId])
+  @@index([titleDraftId])
+  @@index([category])
+  @@index([documentCategory])
+  @@index([bucketName])
+  @@index([createdAt])
+  @@map("uploaded_files")
+}
+
+// A student's academic activity log — presentations, seminars, workshops,
+// awards/recognitions. Unlike Submission/MilestoneCheckpoint, this is never
+// gated by thesis progression; a student can log one at any point. The actual
+// evidence (a certificate PDF, a photo of an event) is an UploadedFile with
+// documentCategory 'award-recognition' or 'activity-evidence', uploaded
+// through Document Submissions and then linked here — this model only holds
+// the descriptive metadata (what/when/where) that a bare file doesn't carry.
+model AcademicActivity {
+  id                        String    @id @default(cuid())
+  projectId                 String
+  project                   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdById               String?
+  createdBy                 User?     @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  activityType              String
+  eventName                 String
+  eventDate                 DateTime?
+  venue                     String?
+  description               String?
+  scope                     String    @default("Local")
+  achievement               String?
+  status                    String    @default("Completed")
+  relatedMilestone          String?
+  participantsOrBeneficiary String?
+  addToTimeline             Boolean   @default(true)
+  markAsAchievement         Boolean   @default(false)
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
+
+  files UploadedFile[]
+
+  @@index([projectId])
+  @@index([createdById])
+  @@index([createdAt])
+  @@map("academic_activities")
+}
+
+model Group {
+  id               String               @id @default(cuid())
+  userId           String // Adviser's user ID
+  projectId        String?
+  status           String               @default("pending")
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  code             String               @unique
+  title            String
+  projectTitle     String
+  dept             String
+  department       String
+  members          Int                  @default(0)
+  students         String[] // Array of student names
+  progress         Int                  @default(0)
+  statusLabel      String
+  statusClass      String
+  lifecycleStatus  GroupLifecycleStatus @default(PENDING)
+  milestone        String               @default("Awaiting initial progress update")
+  currentMilestone String               @default("Awaiting initial progress update")
+  leader           String?
+
+  finalDefenseResult             String    @default("Pending")
+  finalManuscriptApproved        Boolean   @default(false)
+  allRequiredMilestonesCompleted Boolean   @default(false)
+  completedAt                    DateTime?
+  finalScore                     Int?
+  finalRecommendation            String?
+  allowMemberSubmission          Boolean   @default(false)
+
+  groupMembers GroupMember[]
+  projects     Project[]
+  titleDrafts  TitleDraft[]
+
+  @@index([userId])
+  @@index([department])
+  @@index([status])
+  @@index([lifecycleStatus])
+  @@index([createdAt])
+}
+
+// A student-saved "backup title" — never submitted for review, never creates a
+// Project, purely a draft the group can prepare in advance and edit anytime. A
+// group can keep several (e.g. their 2nd/3rd choice titles alongside whichever
+// one is currently being defended). When the group's active project needs a
+// replacement title (see resetProjectForNewTitle / title-submissions POST's
+// "New Title Required" state), the submission form can pre-fill from any one
+// of these instead of a blank form — no rescheduling needed to write one fresh.
+model TitleDraft {
+  id          String   @id @default(cuid())
+  groupId     String
+  group       Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  keywords    String[] @default([])
+  updatedById String?
+  updatedBy   User?    @relation("TitleDraftUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  // Auto-sent to the group's adviser for review the moment it's saved or
+  // edited — any edit resets this back to PENDING, since the content the
+  // adviser previously saw no longer matches what's now saved. APPROVED means
+  // the adviser has cleared this idea specifically (not the same as it being
+  // "the" project title); it's what lets a later replacement-title submission
+  // built from this exact draft skip a second review cycle instead of waiting
+  // through one again (see POST /api/title-submissions).
+  reviewStatus   MilestoneCheckpointReviewStatus @default(PENDING)
+  reviewFeedback String?
+  reviewedAt     DateTime?
+  reviewedById   String?
+  reviewedBy     User?    @relation("TitleDraftReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  // The student's own "this is my best one" pick among their saved backups —
+  // radio-style, at most one true per group (enforced in the PATCH handler,
+  // not the DB). Independent of reviewStatus: a student can flag a priority
+  // pick before the adviser has reviewed it at all.
+  isPriority     Boolean  @default(false)
+  files       UploadedFile[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([groupId])
+  @@index([reviewStatus])
+}
+
+model Department {
+  id          String    @id
+  name        String
+  description String?
+  logo        String?
+  color       String?
+  isActive    Boolean   @default(true)
+  projects    Project[]
+  applications    AccountApplication[]
+  roleAssignments UserRoleAssignment[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([isActive])
+}
+
+model AcademicYear {
+  id        String    @id @default(cuid())
+  label     String    @unique
+  startsAt  DateTime?
+  endsAt    DateTime?
+  isActive  Boolean   @default(false)
+  projects  Project[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([isActive])
+}
+
+model SystemSetting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       Json
+  scope       String   @default("global")
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([scope])
+}
+
+model GroupMember {
+  id        String          @id @default(cuid())
+  groupId   String
+  group     Group           @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      GroupMemberRole @default(MEMBER)
+  joinedAt  DateTime        @default(now())
+  leftAt    DateTime?
+  isActive  Boolean         @default(true)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@unique([groupId, userId])
+  @@index([userId])
+  @@index([role])
+  @@index([isActive])
+}
+
+model Project {
+  id             String        @id @default(cuid())
+  title          String
+  abstract       String?
+  keywords       String[]      @default([])
+  status         ProjectStatus @default(DRAFT)
+  departmentId   String?
+  department     Department?   @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  academicYearId String?
+  academicYear   AcademicYear? @relation(fields: [academicYearId], references: [id], onDelete: SetNull)
+  groupId        String?
+  group          Group?        @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  ownerId        String?
+  owner          User?         @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  adviserId      String?
+  adviser        User?         @relation("ProjectAdviser", fields: [adviserId], references: [id], onDelete: SetNull)
+
+  // Proposal feedback integrations
+  sdgs        String[]  @default([])
+  awards      String[]  @default([])
+  isPublished Boolean   @default(false)
+  archivedAt  DateTime?
+
+  repositoryPublishedAt DateTime?
+  transferReadyAt       DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  milestones           Milestone[]
+  milestoneCheckpoints MilestoneCheckpoint[]
+  submissions          Submission[]
+  progressReports      ProgressReport[]
+  files                UploadedFile[]
+  defenseSchedules     DefenseSchedule[]
+  adviserScheduleItems AdviserScheduleItem[]
+  evaluations          Evaluation[]
+  industryProjects     IndustryProject[]
+  academicActivities   AcademicActivity[]
+  complianceSubmissions ComplianceSubmission[]
+
+  @@index([departmentId])
+  @@index([academicYearId])
+  @@index([groupId])
+  @@index([ownerId])
+  @@index([adviserId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Milestone {
+  id          String          @id @default(cuid())
+  projectId   String
+  project     Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  sequence    Int
+  status      MilestoneStatus @default(PENDING)
+  dueAt       DateTime?
+  completedAt DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  submissions Submission[]
+  checkpoints MilestoneCheckpoint[]
+
+  @@unique([projectId, sequence])
+  @@index([status])
+  @@index([dueAt])
+}
+
+model MilestoneCheckpoint {
+  id                  String                          @id @default(cuid())
+  projectId           String
+  project             Project                         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestoneId         String
+  milestone           Milestone                       @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  key                 String
+  title               String
+  description         String?
+  sequence            Int
+  required            Boolean                         @default(true)
+  status              MilestoneCheckpointStatus       @default(PENDING)
+  adviserReviewStatus MilestoneCheckpointReviewStatus @default(PENDING)
+  panelReviewStatus   MilestoneCheckpointReviewStatus @default(PENDING)
+  submittedAt         DateTime?
+  reviewedAt          DateTime?
+  completedAt         DateTime?
+  latestFeedback      String?
+  latestFeedbackBy    String?
+  latestFeedbackAt    DateTime?
+  studentStartDate    DateTime?
+  studentTargetDate   DateTime?
+  createdAt           DateTime                        @default(now())
+  updatedAt           DateTime                        @updatedAt
+
+  submissions Submission[]
+  files       UploadedFile[]
+
+  @@unique([projectId, key])
+  @@index([projectId])
+  @@index([milestoneId])
+  @@index([status])
+  @@index([submittedAt])
+  @@index([completedAt])
+}
+
+model Submission {
+  id              String               @id @default(cuid())
+  projectId       String
+  project         Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestoneId     String?
+  milestone       Milestone?           @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  checkpointId    String?
+  checkpoint      MilestoneCheckpoint? @relation(fields: [checkpointId], references: [id], onDelete: SetNull)
+  submittedById   String?
+  submittedBy     User?                @relation("SubmissionSubmitter", fields: [submittedById], references: [id], onDelete: SetNull)
+  title           String
+  description     String?
+  status          SubmissionStatus     @default(SUBMITTED)
+  rejectionReason String?
+  version         Int                  @default(1)
+  submittedAt     DateTime             @default(now())
+  reviewedAt      DateTime?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  files    UploadedFile[]
+  comments ReviewComment[]
+
+  @@index([projectId, status])
+  @@index([milestoneId])
+  @@index([checkpointId])
+  @@index([submittedById])
+  @@index([submittedAt])
+}
+
+model ProgressReport {
+  id                  String   @id @default(cuid())
+  projectId           String
+  project             Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  submittedById       String?
+  submittedBy         User?    @relation("ProgressReportSubmitter", fields: [submittedById], references: [id], onDelete: SetNull)
+  submissionId        String?  @unique
+  progressNote        String
+  accomplishments     String[] @default([])
+  problemsEncountered String?
+  nextSteps           String?
+  percentageCompleted Int      @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([createdAt])
+}
+
+model ReviewComment {
+  id           String         @id @default(cuid())
+  submissionId String
+  submission   Submission     @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  authorId     String?
+  author       User?          @relation("ReviewCommentAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  body         String
+  decision     ReviewDecision @default(COMMENT)
+  isResolved   Boolean        @default(false)
+  resolvedAt   DateTime?
+  resolvedById String?
+  resolvedBy   User?          @relation("ReviewCommentResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([submissionId])
+  @@index([authorId])
+  @@index([decision])
+  @@index([isResolved])
+}
+
+model DefenseSchedule {
+  id                   String                @id @default(cuid())
+  projectId            String
+  project              Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  scheduledById        String?
+  scheduledBy          User?                 @relation("DefenseScheduler", fields: [scheduledById], references: [id], onDelete: SetNull)
+  title                String                @default("Final Defense")
+  scheduledAt          DateTime
+  location             String?
+  meetingUrl           String?
+  status               DefenseStatus         @default(SCHEDULED)
+  notes                String?
+  chairDecision        DefenseChairDecision?
+  chairDecisionAt      DateTime?
+  chairDecisionRemarks String?
+  // Snapshot of Project.title at the moment a NEW_TITLE decision is recorded —
+  // Project.title itself gets overwritten once the group submits a replacement,
+  // so without this the rejected title is permanently unrecoverable afterward.
+  previousProjectTitle String?
+  // Live session: set when the chair presses Start (status -> IN_PROGRESS).
+  startedAt            DateTime?
+  // Secretary assigned to record the minutes of this sitting. Not a panelist —
+  // has no Evaluation row and never votes or rates.
+  secretaryId          String?
+  secretary            User?                 @relation("DefenseSecretary", fields: [secretaryId], references: [id], onDelete: SetNull)
+  minutes              String?
+  minutesUpdatedAt     DateTime?
+  // Set when the chair confirms the minutes as the official record.
+  minutesConfirmedAt   DateTime?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+
+  evaluations           Evaluation[]
+  complianceSubmissions ComplianceSubmission[]
+
+  @@index([projectId])
+  @@index([scheduledById])
+  @@index([secretaryId])
+  @@index([scheduledAt])
+  @@index([status])
+}
+
+model AdviserScheduleItem {
+  id            String                    @id @default(cuid())
+  projectId     String
+  project       Project                   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  scheduledById String?
+  scheduledBy   User?                     @relation("AdviserScheduleCreator", fields: [scheduledById], references: [id], onDelete: SetNull)
+  type          AdviserScheduleItemType   @default(CONSULTATION)
+  status        AdviserScheduleItemStatus @default(SCHEDULED)
+  title         String
+  scheduledAt   DateTime
+  endsAt        DateTime?
+  location      String?
+  notes         String?
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+
+  @@index([projectId])
+  @@index([scheduledById])
+  @@index([type])
+  @@index([status])
+  @@index([scheduledAt])
+}
+
+model Evaluation {
+  id                 String                   @id @default(cuid())
+  projectId          String
+  project            Project                  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  defenseScheduleId  String?
+  defenseSchedule    DefenseSchedule?         @relation(fields: [defenseScheduleId], references: [id], onDelete: SetNull)
+  evaluatorId        String?
+  evaluator          User?                    @relation("EvaluationEvaluator", fields: [evaluatorId], references: [id], onDelete: SetNull)
+  panelRole          DefensePanelRole         @default(MEMBER)
+  score              Int?
+  recommendation     EvaluationRecommendation @default(PENDING)
+  remarks            String?
+  rubricData         Json?
+  studentEvaluations Json?
+  submittedAt        DateTime?
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+
+  @@unique([defenseScheduleId, evaluatorId])
+  @@index([projectId])
+  @@index([evaluatorId])
+  @@index([defenseScheduleId, panelRole])
+  @@index([recommendation])
+}
+
+// Post-defense compliance: after passing a Proposal or Final Defense, the group
+// submits proof that they addressed the panel's required revisions. It hangs
+// off the specific DefenseSchedule rather than the project, so the reviewers
+// are exactly the panelists who sat on THAT defense — whoever holds an
+// Evaluation row on it, whether an adviser-role faculty member or an invited
+// panel-only account. A resubmission after "Needs Revision" is a new row
+// (version + 1) so earlier rounds and their remarks stay on record.
+model ComplianceSubmission {
+  id                String           @id @default(cuid())
+  projectId         String
+  project           Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  defenseScheduleId String
+  defenseSchedule   DefenseSchedule  @relation(fields: [defenseScheduleId], references: [id], onDelete: Cascade)
+  submittedById     String?
+  submittedBy       User?            @relation("ComplianceSubmitter", fields: [submittedById], references: [id], onDelete: SetNull)
+  fileId            String?          @unique
+  file              UploadedFile?    @relation(fields: [fileId], references: [id], onDelete: SetNull)
+  version           Int              @default(1)
+  notes             String?
+  status            ComplianceStatus @default(UNDER_REVIEW)
+  submittedAt       DateTime         @default(now())
+  approvedAt        DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  reviews ComplianceReview[]
+
+  @@unique([defenseScheduleId, version])
+  @@index([projectId])
+  @@index([status])
+  @@map("compliance_submissions")
+}
+
+// One row per panelist per compliance submission, snapshotted from the
+// defense's Evaluation rows when the group submits. The submission becomes
+// APPROVED only once every panelist has VERIFIED it.
+model ComplianceReview {
+  id           String                 @id @default(cuid())
+  complianceId String
+  compliance   ComplianceSubmission   @relation(fields: [complianceId], references: [id], onDelete: Cascade)
+  reviewerId   String
+  reviewer     User                   @relation("ComplianceReviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
+  status       ComplianceReviewStatus @default(PENDING)
+  remarks      String?
+  reviewedAt   DateTime?
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+
+  @@unique([complianceId, reviewerId])
+  @@index([reviewerId, status])
+  @@map("compliance_reviews")
+}
+
+model Notification {
+  id         String             @id @default(cuid())
+  userId     String
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title      String
+  message    String
+  type       String             @default("info")
+  status     NotificationStatus @default(UNREAD)
+  entityType String?
+  entityId   String?
+  readAt     DateTime?
+  createdAt  DateTime           @default(now())
+
+  @@index([userId, status])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actor      User?    @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  action     String
+  entityType String
+  entityId   String
+  metadata   Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([actorId])
+  @@index([entityType, entityId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// A self-registration request: the role asked for (never granted by itself) plus the
+// identity document a reviewer checks. Verification and role assignment are separate steps.
+model AccountApplication {
+  id                    String                   @id @default(cuid())
+  userId                String
+  user                  User                     @relation("ApplicationApplicant", fields: [userId], references: [id], onDelete: Cascade)
+  requestedRole         UserRole
+  requestedDepartmentId String?
+  requestedDepartment   Department?              @relation(fields: [requestedDepartmentId], references: [id], onDelete: SetNull)
+  documentType          VerificationDocumentType
+  documentFileId        String?                  @unique
+  documentFile          UploadedFile?            @relation("ApplicationDocumentFront", fields: [documentFileId], references: [id], onDelete: SetNull)
+  // Back of an ID card (TWO_SIDED_DOCUMENTS); null for single-page documents.
+  documentBackFileId    String?                  @unique
+  documentBackFile      UploadedFile?            @relation("ApplicationDocumentBack", fields: [documentBackFileId], references: [id], onDelete: SetNull)
+  status                AccountApplicationStatus @default(PENDING)
+  // Equals userId while PENDING and null otherwise, so a plain unique index allows at most
+  // one pending application per user (Prisma can't express a partial unique index).
+  pendingKey            String?                  @unique
+  reviewedById          String?
+  reviewedBy            User?                    @relation("ApplicationReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt            DateTime?
+  decisionNote          String?
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @updatedAt
+
+  @@index([status, requestedRole])
+  @@index([requestedDepartmentId, status])
+  @@index([userId])
+}
+
+// One explicitly granted role. A user may hold several; the server picks exactly one per request
+// (the active workspace) and never merges their permissions. Revoking flips status on the same
+// row, so the unique key also covers re-grants.
+model UserRoleAssignment {
+  id           String               @id @default(cuid())
+  userId       String
+  user         User                 @relation("RoleAssignee", fields: [userId], references: [id], onDelete: Cascade)
+  role         UserRole
+  // Department.id for department-scoped roles, 'INSTITUTION' for institution-level roles,
+  // 'NONE' for a department-scoped role whose department is not yet known (grants no department access).
+  scope        String
+  departmentId String?
+  department   Department?          @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  status       RoleAssignmentStatus @default(ACTIVE)
+  grantedById  String?
+  grantedBy    User?                @relation("RoleGrantor", fields: [grantedById], references: [id], onDelete: SetNull)
+  grantedAt    DateTime             @default(now())
+  revokedById  String?
+  revokedBy    User?                @relation("RoleRevoker", fields: [revokedById], references: [id], onDelete: SetNull)
+  revokedAt    DateTime?
+  revokeReason String?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@unique([userId, role, scope])
+  @@index([role, departmentId, status])
+  @@index([userId, status])
+}
+
+model BrandingAsset {
+  id           String            @id @default(cuid())
+  type         BrandingAssetType @default(OTHER)
+  label        String?
+  url          String
+  publicId     String            @unique
+  uploadedById String?
+  uploadedBy   User?             @relation("UserBrandingAssets", fields: [uploadedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@index([type])
+  @@index([uploadedById])
+}
+
+// ==========================================
+// Technology Transfer & Industry Partner Module
+// Required by Instructor
+// ==========================================
+
+enum IndustryProjectStatus {
+  PROPOSED   @map("proposed")
+  ACTIVE     @map("active")
+  COMPLETED  @map("completed")
+  TERMINATED @map("terminated")
+}
+
+model IndustryPartner {
+  id            String    @id @default(cuid())
+  name          String
+  contactPerson String?
+  email         String    @unique
+  contactNumber String?
+  address       String?
+  partnerType   String    @default("Corporate")
+  website       String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  industryProjects IndustryProject[]
+  impactFeedbacks  ImpactFeedback[]
+
+  @@index([partnerType])
+}
+
+model IndustryProject {
+  id             String                @id @default(cuid())
+  partnerId      String
+  partner        IndustryPartner       @relation(fields: [partnerId], references: [id], onDelete: Restrict)
+  projectId      String
+  project        Project               @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  status         IndustryProjectStatus @default(PROPOSED)
+  moaUrl         String?
+  deploymentDate DateTime?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  deletedAt      DateTime?
+
+  impactFeedbacks ImpactFeedback[]
+
+  @@index([partnerId])
+  @@index([projectId])
+  @@index([status])
+}
+
+model ImpactFeedback {
+  id                String          @id @default(cuid())
+  industryProjectId String
+  industryProject   IndustryProject @relation(fields: [industryProjectId], references: [id], onDelete: Cascade)
+  partnerId         String
+  partner           IndustryPartner @relation(fields: [partnerId], references: [id], onDelete: Restrict)
+  rating            Int             @default(5)
+  feedback          String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([industryProjectId])
+  @@index([partnerId])
+}

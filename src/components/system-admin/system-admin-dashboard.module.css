@@ -1,0 +1,1407 @@
+/* System Admin dashboard layout. Colors come from the --sa-* theme tokens set by the shared AdminPage wrapper
+   (ui/system-admin-ui.module.css), which follow Theme & Branding and switch for the dark portal theme. */
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.twoCol {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+@media (max-width: 900px) {
+  .twoCol {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .kpiGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ---------- Motion: staggered entrance (disabled for reduced motion at the bottom) ---------- */
+/* Uses `translate` (not `transform`) so the filled animation doesn't override the cards' hover lift. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+  }
+
+  to {
+    opacity: 1;
+    translate: none;
+  }
+}
+
+.reveal,
+.kpiGrid > *,
+.twoCol > * {
+  animation: rise 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+.kpiGrid > :nth-child(1) { --delay: 60ms; }
+.kpiGrid > :nth-child(2) { --delay: 100ms; }
+.kpiGrid > :nth-child(3) { --delay: 140ms; }
+.twoCol > :nth-child(1) { --delay: 170ms; }
+.twoCol > :nth-child(2) { --delay: 200ms; }
+
+/* ---------- Top bar actions: refresh + create ---------- */
+.topActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.refreshButton {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--sa-border);
+  border-radius: 999px;
+  background: var(--sa-surface);
+  color: var(--sa-muted);
+  padding: 0 0.95rem;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.refreshButton:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--color-primary) 35%, var(--sa-border));
+  color: var(--sa-primary-text);
+}
+
+.refreshButton:disabled {
+  cursor: progress;
+}
+
+.refreshButton:focus-visible,
+.segment:focus-visible,
+.attentionTile:focus-visible {
+  outline: 2px solid var(--sa-primary-text);
+  outline-offset: 2px;
+}
+
+.refreshButton > i {
+  color: var(--sa-primary-text);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+/* ---------- Top bar: portal status strip + primary action ---------- */
+.topBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+}
+
+.statusBar {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 32rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 0;
+  border: 1px solid var(--sa-border);
+  border-radius: 0.75rem;
+  background: var(--sa-surface);
+  box-shadow: var(--sa-shadow);
+  padding: 0.35rem 0.25rem;
+}
+
+.statusItem {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+/* Thin divider between items (dropped on phones, where the items wrap onto several lines). */
+.statusItem + .statusItem {
+  border-left: 1px solid var(--sa-border);
+}
+
+.statusItem > i {
+  color: var(--sa-primary-text);
+  font-size: 0.8rem;
+}
+
+.statusItem dt {
+  color: var(--sa-muted);
+}
+
+.statusItem dd {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  color: var(--sa-text);
+  font-weight: 700;
+}
+
+.statusItem dd.valueSuccess {
+  color: var(--sa-success-text);
+}
+
+.statusItem dd.valueError {
+  color: var(--sa-error-text);
+}
+
+/* First block: "Server is live" with the full date and time underneath. */
+.statusPrimary {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  padding-right: 1.1rem;
+}
+
+.statusItem dd.serverLine {
+  gap: 0.5rem;
+  font-size: 0.88rem;
+}
+
+.statusItem dd.clockLine {
+  gap: 0.45rem;
+  color: var(--sa-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.clockLine > i {
+  color: var(--sa-primary-text);
+  font-size: 0.72rem;
+}
+
+/* Fixed-width digits plus a box sized for the longest time ("12:59:59 PM"), so the ticking clock
+   never changes width and the rest of the status bar stays put. */
+.clock {
+  font-variant-numeric: tabular-nums;
+}
+
+.clockTime {
+  display: inline-block;
+  min-width: 11.5ch;
+  font-variant-numeric: tabular-nums;
+}
+
+.clockSep {
+  margin: 0 0.4rem;
+  color: var(--sa-muted);
+  font-weight: 400;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+  .statusItem + .statusItem {
+    border-left: 0;
+  }
+}
+
+/* ---------- Dots (server status, needs attention) ---------- */
+.dot {
+  position: relative;
+  width: 0.55rem;
+  height: 0.55rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+}
+
+.dotWarning {
+  background: var(--color-accent);
+}
+
+.dotNeutral {
+  background: var(--sa-muted);
+}
+
+.dotSuccess {
+  background: var(--color-success);
+}
+
+.dotError {
+  background: var(--color-error);
+}
+
+@keyframes ping {
+  from {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(2.8);
+  }
+}
+
+/* Radar ping behind the "online" dot. */
+.dotLive::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: inherit;
+  content: '';
+  animation: ping 1.8s ease-out infinite;
+}
+
+/* ---------- KPI visuals (right side of each KPI card) ---------- */
+/* Total users: 7-day bars */
+.chart {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+}
+
+.chartCaption {
+  color: var(--sa-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.bars {
+  display: grid;
+  height: 4.6rem;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  align-items: end;
+  gap: 0.4rem;
+}
+
+.barCol {
+  display: grid;
+  height: 100%;
+  grid-template-rows: auto 1fr auto;
+  justify-items: center;
+  gap: 0.2rem;
+}
+
+.barValue {
+  color: var(--sa-muted);
+  font-size: 0.65rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+/* Per-day counts appear on hover; today's is always shown (below). */
+.bars:hover .barValue {
+  opacity: 1;
+}
+
+/* The bar sits in the middle row; --h is its share of the tallest day. */
+.dayBar {
+  width: 100%;
+  max-width: 1.6rem;
+  height: max(var(--h, 0%), 3px);
+  align-self: end;
+  border-radius: 0.3rem 0.3rem 0.15rem 0.15rem;
+  background: color-mix(in srgb, var(--color-primary) 22%, var(--sa-surface));
+  transition: height 0.9s cubic-bezier(0.2, 0.7, 0.2, 1), background-color 0.15s ease;
+}
+
+.barCol:hover .dayBar {
+  background: color-mix(in srgb, var(--color-primary) 45%, var(--sa-surface));
+}
+
+.dayBarToday,
+.barCol:hover .dayBarToday {
+  background: var(--sa-primary-text);
+}
+
+.barCol:last-child .barValue {
+  color: var(--sa-primary-text);
+  opacity: 1;
+}
+
+.barDay {
+  min-height: 0.9rem;
+  color: var(--sa-muted);
+  font-size: 0.66rem;
+  font-weight: 600;
+}
+
+/* Suspended: active ring + legend */
+.ringWrap {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.ring {
+  width: 5.2rem;
+  height: 5.2rem;
+  flex-shrink: 0;
+}
+
+.ringTrack,
+.ringValue {
+  fill: none;
+  stroke-width: 3.6;
+}
+
+.ringTrack {
+  stroke: color-mix(in srgb, var(--color-error) 55%, var(--sa-surface));
+}
+
+.ringValue {
+  stroke: var(--color-success);
+  stroke-linecap: butt;
+  transition: stroke-dasharray 1s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* The value arc is rotated -90° in the markup so it starts at 12 o'clock; the text stays upright. */
+.ringPct,
+.ringSub {
+  text-anchor: middle;
+}
+
+.ringPct {
+  fill: var(--sa-primary-text);
+  font-size: 0.5rem;
+  font-weight: 800;
+}
+
+.ringSub {
+  fill: var(--sa-muted);
+  font-size: 0.26rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Legend shared by the ring and the staff breakdown */
+.legend {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--sa-text);
+  font-size: 0.8rem;
+}
+
+.legendSwatch {
+  width: 0.6rem;
+  height: 0.6rem;
+  flex-shrink: 0;
+  border-radius: 0.2rem;
+}
+
+.legendValue {
+  margin-left: auto;
+  color: var(--sa-primary-text);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.swatchSuccess { background: var(--color-success); }
+.swatchError { background: color-mix(in srgb, var(--color-error) 55%, var(--sa-surface)); }
+.swatchPrimary { background: var(--sa-primary-text); }
+.swatchAccent { background: var(--color-accent); }
+.swatchMuted { background: color-mix(in srgb, var(--color-primary) 25%, var(--sa-surface)); }
+
+/* Staff accounts: stacked bar + legend */
+.breakdown {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.stack {
+  display: flex;
+  height: 0.6rem;
+  overflow: hidden;
+  gap: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sa-border) 70%, var(--sa-surface));
+}
+
+.stackPart {
+  width: var(--share, 0%);
+  transition: width 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* ---------- Users by role ---------- */
+/* Rows reuse .row (icon tile + separators) so they line up with the Recent activity rows. */
+.roleInfo {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 0.4rem;
+}
+
+.roleRowHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--sa-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.roleCount {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  color: var(--sa-muted);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.roleShare {
+  min-width: 2.6rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--sa-surface));
+  color: var(--sa-primary-text);
+  padding: 0.05rem 0.45rem;
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.barTrack {
+  height: 0.45rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sa-border) 70%, var(--sa-surface));
+}
+
+/* Width comes from the data via --share (set per row, 0 until mounted so the bars grow in). */
+.barFill {
+  width: var(--share, 0%);
+  height: 100%;
+  border-radius: inherit;
+  background: var(--sa-primary-text);
+  transition: width 1s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.barFillAccent {
+  background: var(--color-accent);
+}
+
+/* ---------- Recent activity ---------- */
+.segmented {
+  display: inline-flex;
+  gap: 0.15rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 7%, var(--sa-surface));
+  padding: 0.2rem;
+}
+
+.segment {
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--sa-muted);
+  padding: 0.3rem 0.75rem;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.segment:hover {
+  color: var(--sa-primary-text);
+}
+
+.segmentActive {
+  background: var(--sa-surface);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--color-text-primary) 14%, transparent);
+  color: var(--sa-primary-text);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--sa-border);
+  padding: 0.7rem 0;
+  font-size: 0.875rem;
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rowEnter {
+  animation: slideIn 0.35s ease both;
+  animation-delay: calc(var(--i, 0) * 50ms);
+}
+
+.rowText {
+  min-width: 0;
+  flex: 1;
+  color: var(--sa-text);
+  line-height: 1.4;
+}
+
+.rowMeta {
+  flex-shrink: 0;
+  color: var(--sa-muted);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+/* Pinned to the card bottom (the section body is a flex column), so footers of side-by-side cards line up. */
+.cardFooter {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid var(--sa-border);
+  margin-top: auto;
+  padding-top: 0.75rem;
+}
+
+.cardFooter i {
+  margin-left: 0.25rem;
+  font-size: 0.72rem;
+}
+
+/* ---------- Needs attention ---------- */
+.countBadge {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-accent) 18%, var(--sa-surface));
+  color: var(--sa-accent-text);
+  padding: 0.2rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.attentionGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.85rem;
+  margin: 0;
+  padding: 0.5rem 0 0;
+  list-style: none;
+}
+
+.attentionTile {
+  display: grid;
+  height: 100%;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 0.35rem 0.85rem;
+  border: 1px solid var(--sa-border);
+  border-left: 3px solid var(--sa-muted);
+  border-radius: 0.7rem;
+  background: var(--sa-surface);
+  color: inherit;
+  padding: 0.9rem 1rem;
+  text-decoration: none;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.attentionWarning {
+  border-left-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 5%, var(--sa-surface));
+}
+
+.attentionTile:hover {
+  box-shadow: 0 10px 24px -14px color-mix(in srgb, var(--color-primary) 45%, transparent);
+  transform: translateY(-2px);
+}
+
+.attentionText {
+  display: grid;
+  min-width: 0;
+  gap: 0.1rem;
+}
+
+.attentionCount {
+  color: var(--sa-primary-text);
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.attentionLabel {
+  color: var(--sa-muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.attentionAction {
+  grid-column: 2;
+  color: var(--sa-primary-text);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.attentionAction i {
+  margin-left: 0.2rem;
+  font-size: 0.7rem;
+  transition: transform 0.18s ease;
+}
+
+.attentionTile:hover .attentionAction i {
+  transform: translateX(3px);
+}
+
+/* ---------- Activity summary: period filter, summary cards, on-demand charts ---------- */
+.summarySection {
+  overflow: hidden;
+  border: 1px solid var(--sa-border);
+  border-top: 3px solid var(--color-secondary, var(--color-primary));
+  border-radius: 1rem;
+  background: var(--sa-surface);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-text-primary) 5%, transparent),
+    0 12px 28px -16px color-mix(in srgb, var(--color-primary) 28%, transparent);
+}
+
+.summaryBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  min-height: 3.6rem;
+  border-bottom: 1px solid var(--sa-border);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--color-secondary, var(--color-primary)) 8%, var(--sa-surface)), var(--sa-surface) 70%);
+  padding: 0.55rem 1.2rem;
+}
+
+.summaryCollapsed .summaryBar {
+  border-bottom: 0;
+}
+
+/* Centered (not baseline): the title's accent bar made baseline alignment push the subtitle down. */
+.summaryTitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+}
+
+.summaryTitle .hiddenTag {
+  border: 1px solid var(--sa-border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sa-muted) 8%, var(--sa-surface));
+  color: var(--sa-muted);
+  padding: 0.1rem 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.summaryTitle h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  color: var(--sa-primary-text);
+  font-family: var(--sa-font);
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.summaryTitle h2::before {
+  width: 0.3rem;
+  height: 1.15rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--color-secondary, var(--color-primary)), color-mix(in srgb, var(--color-secondary, var(--color-primary)) 35%, transparent));
+  content: '';
+}
+
+.summaryTitle span {
+  color: var(--sa-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.summaryControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pillButton {
+  display: inline-flex;
+  min-height: 2.15rem;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid var(--sa-border);
+  border-radius: 999px;
+  background: var(--sa-surface);
+  color: var(--sa-muted);
+  padding: 0 0.85rem;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+
+.pillButton:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 35%, var(--sa-border));
+  color: var(--sa-primary-text);
+}
+
+.pillButton > i {
+  color: var(--sa-primary-text);
+  font-size: 0.75rem;
+}
+
+.pillButtonOn {
+  border-color: color-mix(in srgb, var(--color-primary) 40%, var(--sa-border));
+  background: color-mix(in srgb, var(--color-primary) 9%, var(--sa-surface));
+  color: var(--sa-primary-text);
+}
+
+.pillButton:focus-visible,
+.chartToggle:focus-visible {
+  outline: 2px solid var(--sa-primary-text);
+  outline-offset: 2px;
+}
+
+/* Fixed column counts that divide the 8 cards evenly: 4 → 2 → 1. */
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: start;
+  gap: 0.85rem;
+  margin: 0;
+  padding: 1rem 1.2rem 1.2rem;
+  list-style: none;
+}
+
+.summaryCard {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+  border: 1px solid var(--sa-border);
+  border-radius: 0.85rem;
+  background: var(--sa-surface);
+  padding: 0.9rem 1rem;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.summaryCard:hover,
+.summaryCardOpen {
+  border-color: color-mix(in srgb, var(--color-primary) 28%, var(--sa-border));
+  box-shadow: 0 10px 24px -16px color-mix(in srgb, var(--color-primary) 45%, transparent);
+}
+
+.summaryHead {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.summaryHead > :first-child {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.6rem;
+  font-size: 0.8rem;
+}
+
+/* Every label gets room for two lines, so numbers and charts line up across cards
+   whether a label wraps or not. */
+.summaryLabel {
+  display: -webkit-box;
+  min-width: 0;
+  min-height: calc(2 * 1.3em);
+  flex: 1;
+  align-content: center;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--sa-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+}
+
+/* Small icon button that reveals the card's chart. */
+.chartToggle {
+  display: inline-flex;
+  width: 1.9rem;
+  height: 1.9rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--sa-border);
+  border-radius: 0.55rem;
+  background: var(--sa-surface);
+  color: var(--sa-muted);
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+
+.chartToggle:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 35%, var(--sa-border));
+  color: var(--sa-primary-text);
+}
+
+.chartToggleOn {
+  border-color: var(--sa-primary-text);
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--sa-surface));
+  color: var(--sa-primary-text);
+}
+
+.summaryValue {
+  margin-top: 0.2rem;
+  color: var(--sa-primary-text);
+  font-size: 1.65rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.summaryDelta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.summaryDelta > i {
+  font-size: 0.68rem;
+}
+
+.summaryDeltaNote {
+  color: var(--sa-muted);
+  font-weight: 500;
+}
+
+.deltaGood { color: var(--sa-success-text); }
+.deltaBad { color: var(--sa-error-text); }
+.deltaNeutral { color: var(--sa-muted); }
+
+/* Mini chart revealed on demand */
+@keyframes chartIn {
+  from {
+    opacity: 0;
+    translate: 0 -4px;
+  }
+
+  to {
+    opacity: 1;
+    translate: none;
+  }
+}
+
+.miniChart {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0.45rem 0 0;
+  border-top: 1px dashed var(--sa-border);
+  padding-top: 0.65rem;
+  animation: chartIn 0.25s ease both;
+}
+
+.miniBars {
+  display: flex;
+  height: 3.4rem;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+@keyframes barGrow {
+  from {
+    transform: scaleY(0);
+  }
+
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.miniBar {
+  min-width: 0;
+  flex: 1;
+  height: max(var(--h, 0%), 2px);
+  border-radius: 3px 3px 1px 1px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-secondary, var(--color-primary)) 55%, var(--sa-surface)), color-mix(in srgb, var(--color-primary) 45%, var(--sa-surface)));
+  transform-origin: bottom;
+  animation: barGrow 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 12ms);
+  transition: background-color 0.15s ease;
+}
+
+.miniBar:hover {
+  background: linear-gradient(180deg, var(--color-secondary, var(--color-primary)), var(--color-primary));
+}
+
+/* One month initial under each bar (same flex sizing and gap as the bars). */
+.miniAxis {
+  display: flex;
+  gap: 2px;
+  color: var(--sa-muted);
+  font-size: 0.64rem;
+  font-weight: 700;
+}
+
+.miniAxis span {
+  min-width: 0;
+  flex: 1;
+  text-align: center;
+}
+
+.miniEmpty {
+  color: var(--sa-muted);
+  font-size: 0.75rem;
+  font-style: italic;
+  text-align: center;
+}
+
+/* School-year picker: a pill-shaped select matching the other header controls. */
+.yearSelect {
+  position: relative;
+  display: inline-flex;
+  min-height: 2.15rem;
+  align-items: center;
+  border: 1px solid var(--sa-border);
+  border-radius: 999px;
+  background: var(--sa-surface);
+  padding-left: 0.8rem;
+  transition: border-color 0.15s ease;
+}
+
+.yearSelect:hover,
+.yearSelect:focus-within {
+  border-color: color-mix(in srgb, var(--color-primary) 35%, var(--sa-border));
+}
+
+.yearSelect:focus-within {
+  outline: 2px solid var(--sa-primary-text);
+  outline-offset: 2px;
+}
+
+.yearSelect > i {
+  color: var(--sa-primary-text);
+  font-size: 0.75rem;
+}
+
+.yearSelect select {
+  min-height: 2.05rem;
+  border: 0;
+  background: transparent;
+  color: var(--sa-primary-text);
+  padding: 0 0.8rem 0 0.45rem;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .miniChart,
+  .miniBar {
+    animation: none;
+  }
+}
+
+@media (max-width: 1200px) {
+  .summaryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .summaryControls {
+    width: 100%;
+  }
+
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   Visual refresh — built on the Theme & Branding tokens (primary, secondary, accent,
+   success, error), so the whole dashboard recolors with the system brand.
+   ========================================================================== */
+
+/* No oversized shell frame: the banner and cards sit directly on the page. */
+:global(.student-shell .student-global-content):has(.topBar.reveal) {
+  min-height: 0 !important;
+  padding: 0.25rem 0 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+/* ---------- Status banner (top bar) ---------- */
+.topBar {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.1rem;
+  background:
+    radial-gradient(circle at 96% -40%, color-mix(in srgb, var(--color-accent) 38%, transparent), transparent 42%),
+    radial-gradient(circle at 0% 140%, color-mix(in srgb, var(--color-secondary, var(--color-primary)) 55%, transparent), transparent 50%),
+    linear-gradient(120deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 62%, #000));
+  box-shadow: 0 16px 36px color-mix(in srgb, var(--color-primary) 26%, transparent);
+  padding: 0.9rem 1rem;
+}
+
+.topBar .statusBar {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.topBar .statusItem + .statusItem {
+  border-left-color: rgb(255 255 255 / 0.16);
+}
+
+.topBar .statusItem > i,
+.topBar .clockLine > i {
+  color: var(--color-accent);
+}
+
+.topBar .statusItem dt {
+  color: rgb(255 255 255 / 0.68);
+}
+
+.topBar .statusItem dd,
+.topBar .statusItem dd.serverLine {
+  color: #fff;
+}
+
+.topBar .statusItem dd.clockLine,
+.topBar .clockSep {
+  color: rgb(255 255 255 / 0.72);
+}
+
+.topBar .statusItem dd.valueSuccess {
+  color: color-mix(in srgb, var(--color-success) 55%, #fff);
+}
+
+.topBar .statusItem dd.valueError {
+  color: color-mix(in srgb, var(--color-error) 45%, #fff);
+}
+
+.topBar .dotSuccess {
+  background: color-mix(in srgb, var(--color-success) 70%, #fff);
+}
+
+.topBar .refreshButton {
+  border-color: rgb(255 255 255 / 0.22);
+  background: rgb(255 255 255 / 0.1);
+  color: #fff;
+  backdrop-filter: blur(6px);
+}
+
+.topBar .refreshButton:hover:not(:disabled) {
+  border-color: rgb(255 255 255 / 0.4);
+  background: rgb(255 255 255 / 0.16);
+  color: #fff;
+}
+
+.topBar .refreshButton > i {
+  color: var(--color-accent);
+}
+
+/* Primary action in the brand accent (gold) so it stands out on the dark banner. */
+.topActions > a {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-primary);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--color-accent) 35%, transparent);
+}
+
+.topActions > a:hover {
+  border-color: color-mix(in srgb, var(--color-accent) 85%, #fff);
+  background: color-mix(in srgb, var(--color-accent) 85%, #fff);
+}
+
+/* ---------- KPI cards: each tinted with its own system color ---------- */
+.kpiGrid > :nth-child(1) { --kpi-tone: var(--color-primary); }
+.kpiGrid > :nth-child(2) { --kpi-tone: var(--color-error); }
+.kpiGrid > :nth-child(3) { --kpi-tone: var(--color-accent); }
+
+.kpiGrid > :nth-child(n) {
+  border-top-color: var(--kpi-tone);
+  border-radius: 1rem;
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--kpi-tone) 10%, transparent), transparent 45%),
+    linear-gradient(180deg, color-mix(in srgb, var(--kpi-tone) 5%, var(--sa-surface)), var(--sa-surface) 60%);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-text-primary) 5%, transparent),
+    0 10px 26px -12px color-mix(in srgb, var(--kpi-tone) 30%, transparent);
+}
+
+.kpiGrid > :nth-child(n):hover {
+  border-color: color-mix(in srgb, var(--kpi-tone) 35%, var(--sa-border));
+  border-top-color: var(--kpi-tone);
+  box-shadow: 0 16px 32px -14px color-mix(in srgb, var(--kpi-tone) 45%, transparent);
+}
+
+/* ---------- Section cards: tinted header band + tone bar before the title ---------- */
+.twoCol > :nth-child(1) { --section-tone: var(--color-primary); }
+.twoCol > :nth-child(2),
+.attentionWrap > section { --section-tone: var(--color-accent); }
+
+.twoCol > section,
+.attentionWrap > section {
+  overflow: hidden;
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-text-primary) 5%, transparent),
+    0 12px 28px -16px color-mix(in srgb, var(--color-primary) 28%, transparent);
+}
+
+.twoCol > section > div:first-child,
+.attentionWrap > section > div:first-child {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--section-tone) 9%, var(--sa-surface)), var(--sa-surface) 75%);
+}
+
+.twoCol > section > div:first-child > h2,
+.attentionWrap > section > div:first-child > h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.twoCol > section > div:first-child > h2::before,
+.attentionWrap > section > div:first-child > h2::before {
+  width: 0.3rem;
+  height: 1.15rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--section-tone), color-mix(in srgb, var(--section-tone) 35%, transparent));
+  content: '';
+}
+
+/* Row hover: a faint brand tint across the row. */
+.row {
+  margin: 0 -0.6rem;
+  border-radius: 0.6rem;
+  padding-right: 0.6rem;
+  padding-left: 0.6rem;
+  transition: background-color 0.15s ease;
+}
+
+.row:hover {
+  background: color-mix(in srgb, var(--color-primary) 4%, var(--sa-surface));
+}
+
+/* Role bars in the brand gradient (primary → secondary); partners in accent. */
+.barFill {
+  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary, var(--color-primary)));
+}
+
+.barFillAccent {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--color-accent) 80%, var(--color-primary)), var(--color-accent));
+}
+
+.dayBarToday,
+.barCol:hover .dayBarToday {
+  background: linear-gradient(180deg, var(--color-secondary, var(--color-primary)), var(--color-primary));
+}
+
+/* ---------- Needs attention tiles ---------- */
+.attentionTile {
+  border-radius: 0.85rem;
+  border-left-width: 4px;
+}
+
+.attentionWarning {
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--color-accent) 16%, transparent), transparent 55%),
+    color-mix(in srgb, var(--color-accent) 6%, var(--sa-surface));
+}
+
+.attentionTile:not(.attentionWarning) {
+  border-left-color: var(--color-primary);
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--color-primary) 9%, transparent), transparent 55%),
+    var(--sa-surface);
+}
+
+.attentionTile:hover {
+  box-shadow: 0 14px 28px -14px color-mix(in srgb, var(--color-primary) 50%, transparent);
+}
+
+@media (max-width: 700px) {
+  .topBar .statusItem + .statusItem {
+    border-left: 0;
+  }
+}
+
+/* ---------- Reduced motion: keep every state change, drop the movement ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .kpiGrid > *,
+  .twoCol > *,
+  .rowEnter,
+  .dotLive::after,
+  .spin {
+    animation: none;
+  }
+
+  .barFill,
+  .dayBar,
+  .ringValue,
+  .stackPart,
+  .attentionTile,
+  .attentionAction i {
+    transition: none;
+  }
+
+  .attentionTile:hover,
+  .attentionTile:hover .attentionAction i {
+    transform: none;
+  }
+}
+
+/*
+ * Dark portal theme forces span/p text to inherit and <b>/<strong> to near-white
+ * (see ui/system-admin-ui.module.css); re-apply the semantic colors used here.
+ */
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .roleCount,
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .refreshButton span,
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .barValue,
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .barDay {
+  color: var(--sa-muted);
+}
+
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .barCol:last-child .barValue,
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .legendValue,
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .roleShare,
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .attentionCount {
+  color: var(--sa-primary-text);
+}
+
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .countBadge {
+  color: var(--sa-accent-text);
+}
+
+/* Summary section: the dark theme forces span/strong colors, so re-apply them here. */
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .summaryValue,
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .summaryTitle h2 {
+  color: var(--sa-primary-text);
+}
+
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .summaryLabel,
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .summaryTitle span,
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .summaryDeltaNote,
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .miniAxis span,
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .summaryTitle .hiddenTag,
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .miniEmpty {
+  color: var(--sa-muted);
+}
+
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .deltaGood { color: var(--sa-success-text); }
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .deltaBad { color: var(--sa-error-text); }
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .deltaNeutral { color: var(--sa-muted); }
+
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .summarySection {
+  box-shadow: var(--sa-shadow);
+}
+
+/* Dark theme: a deep, low-saturation banner built from the original brand color (--sad-brand),
+   softer tints on cards and tiles, and dark text on the gold button. */
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .topBar {
+  border: 1px solid var(--sa-border);
+  background:
+    radial-gradient(circle at 96% -40%, color-mix(in srgb, var(--color-accent) 16%, transparent), transparent 42%),
+    linear-gradient(120deg, color-mix(in srgb, var(--sad-brand, #003a8f) 45%, #111827), color-mix(in srgb, var(--sad-brand, #003a8f) 16%, #0f141c));
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 26px rgb(0 0 0 / 0.25);
+}
+
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .topActions > a {
+  color: #111827;
+  box-shadow: none;
+}
+
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .kpiGrid > :nth-child(n) {
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--kpi-tone) 9%, transparent), transparent 45%),
+    var(--sa-surface);
+  box-shadow: var(--sa-shadow);
+}
+
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .twoCol > section,
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .attentionWrap > section {
+  box-shadow: var(--sa-shadow);
+}
+
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .twoCol > section > div:first-child,
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .attentionWrap > section > div:first-child {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--section-tone) 6%, var(--sa-surface)), var(--sa-surface) 70%);
+}
+
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .attentionWarning {
+  background: color-mix(in srgb, var(--color-accent) 5%, var(--sa-surface));
+}
+
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .attentionTile:not(.attentionWarning) {
+  background: var(--sa-surface);
+}
+
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .row:hover {
+  background: color-mix(in srgb, #fff 3%, var(--sa-surface));
+}
+
+/* The status banner is dark in both themes, so its text stays light. */
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .topBar .refreshButton span,
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .topBar .statusItem dd:not(.valueSuccess):not(.valueError):not(.clockLine) {
+  color: #fff;
+}

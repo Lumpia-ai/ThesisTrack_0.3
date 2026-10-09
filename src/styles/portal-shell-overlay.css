@@ -1,0 +1,61 @@
+/* Role portal shell: responsive sidebar layout + glass navbar.
+   Imported last by role portal layouts to ensure polished shell visuals.
+   - Desktop: page content cleanly offsets beside the sidebar (248px expanded, 72px collapsed).
+   - Expanding the sidebar pushes the content and navbar so nothing is obscured. */
+
+@media (min-width: 1101px) {
+    .student-shell.student-shell:not(.is-sidebar-collapsed) .student-global-main {
+        margin-left: var(--role-shell-sidebar-width, 248px) !important;
+        width: calc(100% - var(--role-shell-sidebar-width, 248px)) !important;
+        max-width: calc(100% - var(--role-shell-sidebar-width, 248px)) !important;
+    }
+
+    .student-shell.student-shell.is-sidebar-collapsed .student-global-main {
+        margin-left: var(--role-shell-sidebar-collapsed-width, 72px) !important;
+        width: calc(100% - var(--role-shell-sidebar-collapsed-width, 72px)) !important;
+        max-width: calc(100% - var(--role-shell-sidebar-collapsed-width, 72px)) !important;
+    }
+
+    .student-shell.student-shell:not(.is-sidebar-collapsed) .student-global-navbar {
+        left: var(--role-shell-sidebar-width, 248px) !important;
+        width: calc(100% - var(--role-shell-sidebar-width, 248px)) !important;
+    }
+
+    .student-shell.student-shell.is-sidebar-collapsed .student-global-navbar {
+        left: var(--role-shell-sidebar-collapsed-width, 72px) !important;
+        width: calc(100% - var(--role-shell-sidebar-collapsed-width, 72px)) !important;
+    }
+}
+
+/* Sidebar brand header matches the navbar height so their bottom edges line up. */
+@media (min-width: 1101px) {
+    .student-shell.student-shell .student-global-sidebar .sidebar-header,
+    .student-shell.student-shell.is-sidebar-collapsed .student-global-sidebar .sidebar-header {
+        box-sizing: border-box !important;
+        height: var(--role-shell-navbar-height, 72px) !important;
+        min-height: var(--role-shell-navbar-height, 72px) !important;
+    }
+}
+
+.student-shell.student-shell .student-global-navbar {
+    background: linear-gradient(
+        90deg,
+        rgba(0, 58, 143, 0.86) 0%,
+        rgba(15, 79, 181, 0.84) 50%,
+        rgba(30, 64, 175, 0.86) 100%
+    ) !important;
+    box-shadow:
+        0 8px 24px rgba(15, 23, 42, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+    -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
+    backdrop-filter: blur(14px) saturate(160%) !important;
+    transition: left 0.2s ease, width 0.2s ease !important;
+}
+
+.student-shell.student-shell .student-global-main {
+    transition: margin-left 0.2s ease, width 0.2s ease !important;
+}
+
+.student-shell.student-shell .student-global-sidebar {
+    transition: width 0.2s ease, transform 0.2s ease !important;
+}

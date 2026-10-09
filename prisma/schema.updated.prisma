@@ -1,0 +1,779 @@
+generator client {
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["public", "user_access", "project_management", "technology_transfer", "notifications_audit"]
+}
+
+enum UserRole {
+  ADMIN         @map("admin")
+  SYSTEM_ADMIN  @map("system_admin")
+  RESEARCH_HEAD @map("research_head")
+  STUDENT       @map("student")
+  ADVISER       @map("adviser")
+  PANEL         @map("panel")
+  PROGRAM_HEAD  @map("program_head")
+  PARTNER       @map("partner")
+  TECH_TRANSFER @map("tech_transfer")
+  LIBRARY       @map("library")
+
+  @@schema("user_access")
+}
+
+enum BrandingAssetType {
+  SYSTEM_LOGO
+  SCHOOL_LOGO
+  LANDING_IMAGE
+  CERTIFICATE_LOGO
+  OTHER
+
+  @@schema("public")
+}
+
+enum GroupLifecycleStatus {
+  PENDING        @map("pending")
+  ACTIVE         @map("active")
+  NEEDS_REVISION @map("needs_revision")
+  AT_RISK        @map("at_risk")
+  COMPLETED      @map("completed")
+  ARCHIVED       @map("archived")
+
+  @@schema("project_management")
+}
+
+enum GroupMemberRole {
+  LEADER @map("leader")
+  MEMBER @map("member")
+
+  @@schema("project_management")
+}
+
+enum ProjectStatus {
+  DRAFT             @map("draft")
+  SUBMITTED         @map("submitted")
+  UNDER_REVIEW      @map("under_review")
+  APPROVED          @map("approved")
+  NEEDS_REVISION    @map("needs_revision")
+  DEFENSE_SCHEDULED @map("defense_scheduled")
+  COMPLETED         @map("completed")
+  ARCHIVED          @map("archived")
+
+  @@schema("project_management")
+}
+
+enum MilestoneStatus {
+  PENDING        @map("pending")
+  IN_PROGRESS    @map("in_progress")
+  SUBMITTED      @map("submitted")
+  APPROVED       @map("approved")
+  NEEDS_REVISION @map("needs_revision")
+  OVERDUE        @map("overdue")
+  COMPLETED      @map("completed")
+
+  @@schema("project_management")
+}
+
+enum MilestoneCheckpointStatus {
+  LOCKED         @map("locked")
+  PENDING        @map("pending")
+  SUBMITTED      @map("submitted")
+  IN_REVIEW      @map("in_review")
+  NEEDS_REVISION @map("needs_revision")
+  APPROVED       @map("approved")
+  COMPLETED      @map("completed")
+
+  @@schema("project_management")
+}
+
+enum MilestoneCheckpointReviewStatus {
+  NOT_REQUIRED   @map("not_required")
+  PENDING        @map("pending")
+  IN_REVIEW      @map("in_review")
+  APPROVED       @map("approved")
+  NEEDS_REVISION @map("needs_revision")
+
+  @@schema("project_management")
+}
+
+enum SubmissionStatus {
+  SUBMITTED      @map("submitted")
+  UNDER_REVIEW   @map("under_review")
+  APPROVED       @map("approved")
+  NEEDS_REVISION @map("needs_revision")
+  REJECTED       @map("rejected")
+  ARCHIVED       @map("archived")
+
+  @@schema("project_management")
+}
+
+enum ReviewDecision {
+  COMMENT         @map("comment")
+  APPROVE         @map("approve")
+  REQUEST_CHANGES @map("request_changes")
+  REJECT          @map("reject")
+
+  @@schema("project_management")
+}
+
+enum DefenseStatus {
+  SCHEDULED   @map("scheduled")
+  RESCHEDULED @map("rescheduled")
+  COMPLETED   @map("completed")
+  CANCELLED   @map("cancelled")
+
+  @@schema("project_management")
+}
+
+enum AdviserScheduleItemType {
+  CONSULTATION @map("consultation")
+  DEADLINE     @map("deadline")
+  MEETING      @map("meeting")
+  REMINDER     @map("reminder")
+  EVENT        @map("event")
+  REVIEW       @map("review")
+
+  @@schema("project_management")
+}
+
+enum AdviserScheduleItemStatus {
+  SCHEDULED @map("scheduled")
+  COMPLETED @map("completed")
+  CANCELLED @map("cancelled")
+
+  @@schema("project_management")
+}
+
+enum EvaluationRecommendation {
+  PENDING      @map("pending")
+  PASSED       @map("passed")
+  PASSED_MINOR @map("passed_minor")
+  PASSED_MAJOR @map("passed_major")
+  REDEFENSE    @map("redefense")
+  FAILED       @map("failed")
+
+  @@schema("project_management")
+}
+
+enum DefensePanelRole {
+  CHAIR  @map("chair")
+  MEMBER @map("member")
+
+  @@schema("project_management")
+}
+
+enum NotificationStatus {
+  UNREAD   @map("unread")
+  READ     @map("read")
+  ARCHIVED @map("archived")
+
+  @@schema("notifications_audit")
+}
+
+model User {
+  id                   String                @id @default(cuid())
+  email                String                @unique
+  passwordHash         String?
+  supabaseId           String?               @unique
+  googleSub            String?               @unique
+  name                 String
+  firstName            String?
+  lastName             String?
+  studentId            String?               @unique
+  department           String?
+  yearLevel            String?
+  role                 UserRole              @default(STUDENT)
+  contactNumber        String?
+  address              String?
+  birthDate            String?
+  profileImage         String?
+  section              String?
+  accountSummary       String?
+  office               String?
+  displayName          String?
+  isSuspended          Boolean               @default(false)
+  suspendedAt          DateTime?
+  suspendedUntil       DateTime?
+  deletedAt            DateTime?             // ✅ Added soft delete
+  passwordResetTokens  PasswordResetToken[]
+  passwordResetCodes   PasswordResetCode[]
+  uploadedFiles        UploadedFile[]
+  groupMemberships     GroupMember[]
+  ownedProjects        Project[]             @relation("ProjectOwner")
+  advisedProjects      Project[]             @relation("ProjectAdviser")
+  submissions          Submission[]          @relation("SubmissionSubmitter")
+  reviewComments       ReviewComment[]       @relation("ReviewCommentAuthor")
+  resolvedComments     ReviewComment[]       @relation("ReviewCommentResolver")
+  scheduledDefenses    DefenseSchedule[]     @relation("DefenseScheduler")
+  adviserScheduleItems AdviserScheduleItem[] @relation("AdviserScheduleCreator")
+  evaluations          Evaluation[]          @relation("EvaluationEvaluator")
+  notifications        Notification[]
+  auditLogs            AuditLog[]            @relation("AuditActor")
+  brandingAssets       BrandingAsset[]       @relation("UserBrandingAssets")
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+
+  @@index([role])
+  @@index([isSuspended])
+  @@index([suspendedUntil])
+  @@index([department])
+  @@map("users")
+  @@schema("user_access")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
+  @@schema("user_access")
+}
+
+model PasswordResetCode {
+  id             String    @id @default(cuid())
+  codeHash       String
+  resetTokenHash String?   @unique
+  expiresAt      DateTime
+  usedAt         DateTime?
+  verifiedAt     DateTime?
+  attempts       Int       @default(0)
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_reset_codes")
+  @@schema("user_access")
+}
+
+model UploadedFile {
+  id               String               @id @default(cuid())
+  secureUrl        String?              @map("secure_url")
+  publicId         String?              @unique @map("public_id")
+  fileName         String               @map("file_name")
+  filePath         String?              @map("file_path")
+  bucketName       String?              @map("bucket_name")
+  fileType         String               @map("file_type")
+  resourceType     String?              @map("resource_type")
+  documentCategory String               @default("Uncategorized") @map("document_category")
+  category         String               @default("Uncategorized")
+  visibility       String               @default("private")
+  size             Int?                 @map("file_size")
+  userId           String               @map("uploaded_by")
+  user             User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId        String?              @map("project_id")
+  project          Project?             @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  submissionId     String?              @map("submission_id")
+  submission       Submission?          @relation(fields: [submissionId], references: [id], onDelete: SetNull)
+  checkpointId     String?              @map("checkpoint_id")
+  checkpoint       MilestoneCheckpoint? @relation(fields: [checkpointId], references: [id], onDelete: SetNull)
+  createdAt        DateTime             @default(now()) @map("created_at")
+  updatedAt        DateTime             @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([submissionId])
+  @@index([checkpointId])
+  @@index([category])
+  @@index([documentCategory])
+  @@index([bucketName])
+  @@index([createdAt])
+  @@map("uploaded_files")
+  @@schema("public")
+}
+
+model Group {
+  id               String               @id @default(cuid())
+  userId           String // Adviser's user ID
+  projectId        String?
+  departmentId     String?              // ✅ Added robust relation ID
+  department       Department?          @relation(fields: [departmentId], references: [id], onDelete: SetNull) // ✅ Added relation
+  status           String               @default("pending")
+  code             String               @unique
+  title            String
+  projectTitle     String
+  members          Int                  @default(0)
+  progress         Int                  @default(0)
+  lifecycleStatus  GroupLifecycleStatus @default(PENDING)
+  milestone        String               @default("Awaiting initial progress update")
+  currentMilestone String               @default("Awaiting initial progress update")
+  leader           String?
+
+  finalDefenseResult             String    @default("Pending")
+  finalManuscriptApproved        Boolean   @default(false)
+  allRequiredMilestonesCompleted Boolean   @default(false)
+  completedAt                    DateTime?
+  finalScore                     Int?
+  finalRecommendation            String?
+  allowMemberSubmission          Boolean   @default(false)
+
+  deletedAt        DateTime?             // ✅ Added soft delete
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  groupMembers GroupMember[]
+  projects     Project[]
+
+  @@index([userId])
+  @@index([departmentId])
+  @@index([status])
+  @@index([lifecycleStatus])
+  @@index([createdAt])
+  @@map("groups")
+  @@schema("project_management")
+}
+
+model Department {
+  id          String    @id
+  name        String
+  description String?
+  logo        String?
+  color       String?
+  isActive    Boolean   @default(true)
+  deletedAt   DateTime? // ✅ Added soft delete
+  projects    Project[]
+  groups      Group[]   // ✅ Added inverse relation for Groups
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([isActive])
+  @@map("departments")
+  @@schema("project_management")
+}
+
+model AcademicYear {
+  id        String    @id @default(cuid())
+  label     String    @unique
+  startsAt  DateTime?
+  endsAt    DateTime?
+  isActive  Boolean   @default(false)
+  deletedAt DateTime? // ✅ Added soft delete
+  projects  Project[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([isActive])
+  @@map("academic_years")
+  @@schema("project_management")
+}
+
+model SystemSetting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       Json
+  scope       String   @default("global")
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([scope])
+  @@map("system_settings")
+  @@schema("notifications_audit")
+}
+
+model GroupMember {
+  id        String          @id @default(cuid())
+  groupId   String
+  group     Group           @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      GroupMemberRole @default(MEMBER)
+  joinedAt  DateTime        @default(now())
+  leftAt    DateTime?
+  isActive  Boolean         @default(true)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@unique([groupId, userId])
+  @@index([userId])
+  @@index([role])
+  @@index([isActive])
+  @@map("group_members")
+  @@schema("project_management")
+}
+
+model Project {
+  id                    String        @id @default(cuid())
+  title                 String
+  abstract              String?
+  keywords              String[]      @default([])
+  status                ProjectStatus @default(DRAFT)
+  departmentId          String?
+  department            Department?   @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  academicYearId        String?
+  academicYear          AcademicYear? @relation(fields: [academicYearId], references: [id], onDelete: SetNull)
+  groupId               String?
+  group                 Group?        @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  ownerId               String?
+  owner                 User?         @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  adviserId             String?
+  adviser               User?         @relation("ProjectAdviser", fields: [adviserId], references: [id], onDelete: SetNull)
+  
+  // Proposal feedback integrations
+  sdgs                  String[]      @default([])
+  awards                String[]      @default([])
+  isPublished           Boolean       @default(false)
+  archivedAt            DateTime?
+  deletedAt             DateTime?     // ✅ Added soft delete
+
+  repositoryPublishedAt DateTime?
+  transferReadyAt       DateTime?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  milestones           Milestone[]
+  milestoneCheckpoints MilestoneCheckpoint[]
+  submissions          Submission[]
+  files                UploadedFile[]
+  defenseSchedules     DefenseSchedule[]
+  adviserScheduleItems AdviserScheduleItem[]
+  evaluations          Evaluation[]
+  industryProjects     IndustryProject[]
+
+  @@index([departmentId])
+  @@index([academicYearId])
+  @@index([groupId])
+  @@index([ownerId])
+  @@index([adviserId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("projects")
+  @@schema("project_management")
+}
+
+model Milestone {
+  id          String          @id @default(cuid())
+  projectId   String
+  project     Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  sequence    Int
+  status      MilestoneStatus @default(PENDING)
+  dueAt       DateTime?
+  completedAt DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  submissions Submission[]
+  checkpoints MilestoneCheckpoint[]
+
+  @@unique([projectId, sequence])
+  @@index([status])
+  @@index([dueAt])
+  @@map("milestones")
+  @@schema("project_management")
+}
+
+model MilestoneCheckpoint {
+  id                  String                          @id @default(cuid())
+  projectId           String
+  project             Project                         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestoneId         String
+  milestone           Milestone                       @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  key                 String
+  title               String
+  description         String?
+  sequence            Int
+  required            Boolean                         @default(true)
+  status              MilestoneCheckpointStatus       @default(PENDING)
+  adviserReviewStatus MilestoneCheckpointReviewStatus @default(PENDING)
+  panelReviewStatus   MilestoneCheckpointReviewStatus @default(PENDING)
+  submittedAt         DateTime?
+  reviewedAt          DateTime?
+  completedAt         DateTime?
+  latestFeedback      String?
+  latestFeedbackBy    String?
+  latestFeedbackAt    DateTime?
+  studentStartDate    DateTime?
+  studentTargetDate   DateTime?
+  createdAt           DateTime                        @default(now())
+  updatedAt           DateTime                        @updatedAt
+
+  submissions Submission[]
+  files       UploadedFile[]
+
+  @@unique([projectId, key])
+  @@index([projectId])
+  @@index([milestoneId])
+  @@index([status])
+  @@index([submittedAt])
+  @@index([completedAt])
+  @@map("milestone_checkpoints")
+  @@schema("project_management")
+}
+
+model Submission {
+  id            String               @id @default(cuid())
+  projectId     String
+  project       Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestoneId   String?
+  milestone     Milestone?           @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  checkpointId  String?
+  checkpoint    MilestoneCheckpoint? @relation(fields: [checkpointId], references: [id], onDelete: SetNull)
+  submittedById String?
+  submittedBy   User?                @relation("SubmissionSubmitter", fields: [submittedById], references: [id], onDelete: SetNull)
+  title         String
+  description   String?
+  status        SubmissionStatus     @default(SUBMITTED)
+  rejectionReason String?
+  version       Int                  @default(1)
+  submittedAt   DateTime             @default(now())
+  reviewedAt    DateTime?
+  deletedAt     DateTime?            // ✅ Added soft delete
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  files    UploadedFile[]
+  comments ReviewComment[]
+
+  @@index([projectId, status])
+  @@index([milestoneId])
+  @@index([checkpointId])
+  @@index([submittedById])
+  @@index([submittedAt])
+  @@map("submissions")
+  @@schema("project_management")
+}
+
+model ReviewComment {
+  id           String         @id @default(cuid())
+  submissionId String
+  submission   Submission     @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  authorId     String?
+  author       User?          @relation("ReviewCommentAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  body         String
+  decision     ReviewDecision @default(COMMENT)
+  isResolved   Boolean        @default(false)
+  resolvedAt   DateTime?
+  resolvedById String?
+  resolvedBy   User?          @relation("ReviewCommentResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([submissionId])
+  @@index([authorId])
+  @@index([decision])
+  @@index([isResolved])
+  @@map("review_comments")
+  @@schema("project_management")
+}
+
+model DefenseSchedule {
+  id            String        @id @default(cuid())
+  projectId     String
+  project       Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  scheduledById String?
+  scheduledBy   User?         @relation("DefenseScheduler", fields: [scheduledById], references: [id], onDelete: SetNull)
+  title         String        @default("Final Defense")
+  scheduledAt   DateTime
+  location      String?
+  meetingUrl    String?
+  status        DefenseStatus @default(SCHEDULED)
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  evaluations Evaluation[]
+
+  @@index([projectId])
+  @@index([scheduledById])
+  @@index([scheduledAt])
+  @@index([status])
+  @@map("defense_schedules")
+  @@schema("project_management")
+}
+
+model AdviserScheduleItem {
+  id            String                    @id @default(cuid())
+  projectId     String
+  project       Project                   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  scheduledById String?
+  scheduledBy   User?                     @relation("AdviserScheduleCreator", fields: [scheduledById], references: [id], onDelete: SetNull)
+  type          AdviserScheduleItemType   @default(CONSULTATION)
+  status        AdviserScheduleItemStatus @default(SCHEDULED)
+  title         String
+  scheduledAt   DateTime
+  endsAt        DateTime?
+  location      String?
+  notes         String?
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+
+  @@index([projectId])
+  @@index([scheduledById])
+  @@index([type])
+  @@index([status])
+  @@index([scheduledAt])
+  @@map("adviser_schedule_items")
+  @@schema("project_management")
+}
+
+model Evaluation {
+  id                 String                   @id @default(cuid())
+  projectId          String
+  project            Project                  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  defenseScheduleId  String?
+  defenseSchedule    DefenseSchedule?         @relation(fields: [defenseScheduleId], references: [id], onDelete: SetNull)
+  evaluatorId        String?
+  evaluator          User?                    @relation("EvaluationEvaluator", fields: [evaluatorId], references: [id], onDelete: SetNull)
+  panelRole          DefensePanelRole         @default(MEMBER)
+  score              Int?
+  recommendation     EvaluationRecommendation @default(PENDING)
+  remarks            String?
+  rubricData         Json?
+  studentEvaluations Json?
+  submittedAt        DateTime?
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+
+  @@unique([defenseScheduleId, evaluatorId])
+  @@index([projectId])
+  @@index([evaluatorId])
+  @@index([defenseScheduleId, panelRole])
+  @@index([recommendation])
+  @@map("evaluations")
+  @@schema("project_management")
+}
+
+model Notification {
+  id         String             @id @default(cuid())
+  userId     String
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title      String
+  message    String
+  type       String             @default("info")
+  status     NotificationStatus @default(UNREAD)
+  entityType String?
+  entityId   String?
+  readAt     DateTime?
+  createdAt  DateTime           @default(now())
+
+  @@index([userId, status])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("notifications")
+  @@schema("notifications_audit")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actor      User?    @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  action     String
+  entityType String
+  entityId   String
+  metadata   Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([actorId])
+  @@index([entityType, entityId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+  @@schema("notifications_audit")
+}
+
+model BrandingAsset {
+  id           String            @id @default(cuid())
+  type         BrandingAssetType @default(OTHER)
+  label        String?
+  url          String
+  publicId     String            @unique
+  uploadedById String?
+  uploadedBy   User?             @relation("UserBrandingAssets", fields: [uploadedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@index([type])
+  @@index([uploadedById])
+  @@map("branding_assets")
+  @@schema("public")
+}
+
+// ==========================================
+// Technology Transfer & Industry Partner Module
+// Required by Instructor
+// ==========================================
+
+enum IndustryProjectStatus {
+  PROPOSED   @map("proposed")
+  ACTIVE     @map("active")
+  COMPLETED  @map("completed")
+  TERMINATED @map("terminated")
+
+  @@schema("technology_transfer")
+}
+
+model IndustryPartner {
+  id            String    @id @default(cuid())
+  name          String
+  contactPerson String?
+  email         String    @unique
+  contactNumber String?
+  address       String?
+  partnerType   String    @default("Corporate")
+  website       String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  industryProjects IndustryProject[]
+  impactFeedbacks  ImpactFeedback[]
+
+  @@index([partnerType])
+  @@map("industry_partners")
+  @@schema("technology_transfer")
+}
+
+model IndustryProject {
+  id             String                @id @default(cuid())
+  partnerId      String
+  partner        IndustryPartner       @relation(fields: [partnerId], references: [id], onDelete: Restrict)
+  projectId      String
+  project        Project               @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  status         IndustryProjectStatus @default(PROPOSED)
+  moaUrl         String?
+  deploymentDate DateTime?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  deletedAt      DateTime?
+
+  impactFeedbacks ImpactFeedback[]
+
+  @@index([partnerId])
+  @@index([projectId])
+  @@index([status])
+  @@map("industry_projects")
+  @@schema("technology_transfer")
+}
+
+model ImpactFeedback {
+  id                String          @id @default(cuid())
+  industryProjectId String
+  industryProject   IndustryProject @relation(fields: [industryProjectId], references: [id], onDelete: Cascade)
+  partnerId         String
+  partner           IndustryPartner @relation(fields: [partnerId], references: [id], onDelete: Restrict)
+  rating            Int             @default(5)
+  feedback          String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([industryProjectId])
+  @@index([partnerId])
+  @@map("impact_feedbacks")
+  @@schema("technology_transfer")
+}

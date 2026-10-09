@@ -1,0 +1,655 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table User {
+  id String [pk]
+  email String [unique, not null]
+  passwordHash String
+  supabaseId String [unique]
+  googleSub String [unique]
+  name String [not null]
+  firstName String
+  lastName String
+  studentId String [unique]
+  department String
+  yearLevel String
+  role UserRole [not null, default: 'STUDENT']
+  contactNumber String
+  address String
+  birthDate String
+  profileImage String
+  section String
+  accountSummary String
+  office String
+  displayName String
+  isSuspended Boolean [not null, default: false]
+  suspendedAt DateTime
+  suspendedUntil DateTime
+  passwordResetTokens PasswordResetToken [not null]
+  passwordResetCodes password_reset_codes [not null]
+  uploadedFiles uploaded_files [not null]
+  groupMemberships GroupMember [not null]
+  ownedProjects Project [not null]
+  advisedProjects Project [not null]
+  submissions Submission [not null]
+  reviewComments ReviewComment [not null]
+  resolvedComments ReviewComment [not null]
+  scheduledDefenses DefenseSchedule [not null]
+  adviserScheduleItems AdviserScheduleItem [not null]
+  evaluations Evaluation [not null]
+  notifications Notification [not null]
+  auditLogs AuditLog [not null]
+  brandingAssets BrandingAsset [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table PasswordResetToken {
+  id String [pk]
+  tokenHash String [unique, not null]
+  expiresAt DateTime [not null]
+  usedAt DateTime
+  userId String [not null]
+  user User [not null]
+  createdAt DateTime [default: `now()`, not null]
+}
+
+Table password_reset_codes {
+  id String [pk]
+  codeHash String [not null]
+  resetTokenHash String [unique]
+  expiresAt DateTime [not null]
+  usedAt DateTime
+  verifiedAt DateTime
+  attempts Int [not null, default: 0]
+  userId String [not null]
+  user User [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table uploaded_files {
+  id String [pk]
+  secureUrl String
+  publicId String [unique]
+  fileName String [not null]
+  filePath String
+  bucketName String
+  fileType String [not null]
+  resourceType String
+  documentCategory String [not null, default: 'Uncategorized']
+  category String [not null, default: 'Uncategorized']
+  visibility String [not null, default: 'private']
+  size Int
+  userId String [not null]
+  user User [not null]
+  projectId String
+  project Project
+  submissionId String
+  submission Submission
+  checkpointId String
+  checkpoint MilestoneCheckpoint
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table Group {
+  id String [pk]
+  userId String [not null]
+  projectId String
+  status String [not null, default: 'pending']
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  code String [unique, not null]
+  title String [not null]
+  projectTitle String [not null]
+  dept String [not null]
+  department String [not null]
+  members Int [not null, default: 0]
+  students String[] [not null]
+  progress Int [not null, default: 0]
+  statusLabel String [not null]
+  statusClass String [not null]
+  lifecycleStatus GroupLifecycleStatus [not null, default: 'PENDING']
+  milestone String [not null, default: 'Awaiting initial progress update']
+  currentMilestone String [not null, default: 'Awaiting initial progress update']
+  leader String
+  finalDefenseResult String [not null, default: 'Pending']
+  finalManuscriptApproved Boolean [not null, default: false]
+  allRequiredMilestonesCompleted Boolean [not null, default: false]
+  completedAt DateTime
+  finalScore Int
+  finalRecommendation String
+  allowMemberSubmission Boolean [not null, default: false]
+  groupMembers GroupMember [not null]
+  projects Project [not null]
+}
+
+Table Department {
+  id String [pk]
+  name String [not null]
+  description String
+  logo String
+  color String
+  isActive Boolean [not null, default: true]
+  projects Project [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table AcademicYear {
+  id String [pk]
+  label String [unique, not null]
+  startsAt DateTime
+  endsAt DateTime
+  isActive Boolean [not null, default: false]
+  projects Project [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table SystemSetting {
+  id String [pk]
+  key String [unique, not null]
+  value Json [not null]
+  scope String [not null, default: 'global']
+  description String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table GroupMember {
+  id String [pk]
+  groupId String [not null]
+  group Group [not null]
+  userId String [not null]
+  user User [not null]
+  role GroupMemberRole [not null, default: 'MEMBER']
+  joinedAt DateTime [default: `now()`, not null]
+  leftAt DateTime
+  isActive Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+
+  indexes {
+    (groupId, userId) [unique]
+  }
+}
+
+Table Project {
+  id String [pk]
+  title String [not null]
+  abstract String
+  keywords String[] [not null]
+  status ProjectStatus [not null, default: 'DRAFT']
+  departmentId String
+  department Department
+  academicYearId String
+  academicYear AcademicYear
+  groupId String
+  group Group
+  ownerId String
+  owner User
+  adviserId String
+  adviser User
+  sdgs String[] [not null]
+  awards String[] [not null]
+  isPublished Boolean [not null, default: false]
+  archivedAt DateTime
+  repositoryPublishedAt DateTime
+  transferReadyAt DateTime
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  milestones Milestone [not null]
+  milestoneCheckpoints MilestoneCheckpoint [not null]
+  submissions Submission [not null]
+  files uploaded_files [not null]
+  defenseSchedules DefenseSchedule [not null]
+  adviserScheduleItems AdviserScheduleItem [not null]
+  evaluations Evaluation [not null]
+  industryProjects IndustryProject [not null]
+}
+
+Table Milestone {
+  id String [pk]
+  projectId String [not null]
+  project Project [not null]
+  title String [not null]
+  description String
+  sequence Int [not null]
+  status MilestoneStatus [not null, default: 'PENDING']
+  dueAt DateTime
+  completedAt DateTime
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  submissions Submission [not null]
+  checkpoints MilestoneCheckpoint [not null]
+
+  indexes {
+    (projectId, sequence) [unique]
+  }
+}
+
+Table MilestoneCheckpoint {
+  id String [pk]
+  projectId String [not null]
+  project Project [not null]
+  milestoneId String [not null]
+  milestone Milestone [not null]
+  key String [not null]
+  title String [not null]
+  description String
+  sequence Int [not null]
+  required Boolean [not null, default: true]
+  status MilestoneCheckpointStatus [not null, default: 'PENDING']
+  adviserReviewStatus MilestoneCheckpointReviewStatus [not null, default: 'PENDING']
+  panelReviewStatus MilestoneCheckpointReviewStatus [not null, default: 'PENDING']
+  submittedAt DateTime
+  reviewedAt DateTime
+  completedAt DateTime
+  latestFeedback String
+  latestFeedbackBy String
+  latestFeedbackAt DateTime
+  studentStartDate DateTime
+  studentTargetDate DateTime
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  submissions Submission [not null]
+  files uploaded_files [not null]
+
+  indexes {
+    (projectId, key) [unique]
+  }
+}
+
+Table Submission {
+  id String [pk]
+  projectId String [not null]
+  project Project [not null]
+  milestoneId String
+  milestone Milestone
+  checkpointId String
+  checkpoint MilestoneCheckpoint
+  submittedById String
+  submittedBy User
+  title String [not null]
+  description String
+  status SubmissionStatus [not null, default: 'SUBMITTED']
+  rejectionReason String
+  version Int [not null, default: 1]
+  submittedAt DateTime [default: `now()`, not null]
+  reviewedAt DateTime
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  files uploaded_files [not null]
+  comments ReviewComment [not null]
+}
+
+Table ReviewComment {
+  id String [pk]
+  submissionId String [not null]
+  submission Submission [not null]
+  authorId String
+  author User
+  body String [not null]
+  decision ReviewDecision [not null, default: 'COMMENT']
+  isResolved Boolean [not null, default: false]
+  resolvedAt DateTime
+  resolvedById String
+  resolvedBy User
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table DefenseSchedule {
+  id String [pk]
+  projectId String [not null]
+  project Project [not null]
+  scheduledById String
+  scheduledBy User
+  title String [not null, default: 'Final Defense']
+  scheduledAt DateTime [not null]
+  location String
+  meetingUrl String
+  status DefenseStatus [not null, default: 'SCHEDULED']
+  notes String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  evaluations Evaluation [not null]
+}
+
+Table AdviserScheduleItem {
+  id String [pk]
+  projectId String [not null]
+  project Project [not null]
+  scheduledById String
+  scheduledBy User
+  type AdviserScheduleItemType [not null, default: 'CONSULTATION']
+  status AdviserScheduleItemStatus [not null, default: 'SCHEDULED']
+  title String [not null]
+  scheduledAt DateTime [not null]
+  endsAt DateTime
+  location String
+  notes String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table Evaluation {
+  id String [pk]
+  projectId String [not null]
+  project Project [not null]
+  defenseScheduleId String
+  defenseSchedule DefenseSchedule
+  evaluatorId String
+  evaluator User
+  panelRole DefensePanelRole [not null, default: 'MEMBER']
+  score Int
+  recommendation EvaluationRecommendation [not null, default: 'PENDING']
+  remarks String
+  rubricData Json
+  studentEvaluations Json
+  submittedAt DateTime
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+
+  indexes {
+    (defenseScheduleId, evaluatorId) [unique]
+  }
+}
+
+Table Notification {
+  id String [pk]
+  userId String [not null]
+  user User [not null]
+  title String [not null]
+  message String [not null]
+  type String [not null, default: 'info']
+  status NotificationStatus [not null, default: 'UNREAD']
+  entityType String
+  entityId String
+  readAt DateTime
+  createdAt DateTime [default: `now()`, not null]
+}
+
+Table AuditLog {
+  id String [pk]
+  actorId String
+  actor User
+  action String [not null]
+  entityType String [not null]
+  entityId String [not null]
+  metadata Json
+  ipAddress String
+  userAgent String
+  createdAt DateTime [default: `now()`, not null]
+}
+
+Table BrandingAsset {
+  id String [pk]
+  type BrandingAssetType [not null, default: 'OTHER']
+  label String
+  url String [not null]
+  publicId String [unique, not null]
+  uploadedById String
+  uploadedBy User
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table IndustryPartner {
+  id String [pk]
+  name String [not null]
+  contactPerson String
+  email String [unique, not null]
+  contactNumber String
+  address String
+  partnerType String [not null, default: 'Corporate']
+  website String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  deletedAt DateTime
+  industryProjects IndustryProject [not null]
+  impactFeedbacks ImpactFeedback [not null]
+}
+
+Table IndustryProject {
+  id String [pk]
+  partnerId String [not null]
+  partner IndustryPartner [not null]
+  projectId String [not null]
+  project Project [not null]
+  status IndustryProjectStatus [not null, default: 'PROPOSED']
+  moaUrl String
+  deploymentDate DateTime
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  deletedAt DateTime
+  impactFeedbacks ImpactFeedback [not null]
+}
+
+Table ImpactFeedback {
+  id String [pk]
+  industryProjectId String [not null]
+  industryProject IndustryProject [not null]
+  partnerId String [not null]
+  partner IndustryPartner [not null]
+  rating Int [not null, default: 5]
+  feedback String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Enum UserRole {
+  ADMIN
+  SYSTEM_ADMIN
+  RESEARCH_HEAD
+  STUDENT
+  ADVISER
+  PANEL
+  PROGRAM_HEAD
+  PARTNER
+  TECH_TRANSFER
+  LIBRARY
+}
+
+Enum BrandingAssetType {
+  SYSTEM_LOGO
+  SCHOOL_LOGO
+  LANDING_IMAGE
+  CERTIFICATE_LOGO
+  OTHER
+}
+
+Enum GroupLifecycleStatus {
+  PENDING
+  ACTIVE
+  NEEDS_REVISION
+  AT_RISK
+  COMPLETED
+  ARCHIVED
+}
+
+Enum GroupMemberRole {
+  LEADER
+  MEMBER
+}
+
+Enum ProjectStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  NEEDS_REVISION
+  DEFENSE_SCHEDULED
+  COMPLETED
+  ARCHIVED
+}
+
+Enum MilestoneStatus {
+  PENDING
+  IN_PROGRESS
+  SUBMITTED
+  APPROVED
+  NEEDS_REVISION
+  OVERDUE
+  COMPLETED
+}
+
+Enum MilestoneCheckpointStatus {
+  LOCKED
+  PENDING
+  SUBMITTED
+  IN_REVIEW
+  NEEDS_REVISION
+  APPROVED
+  COMPLETED
+}
+
+Enum MilestoneCheckpointReviewStatus {
+  NOT_REQUIRED
+  PENDING
+  IN_REVIEW
+  APPROVED
+  NEEDS_REVISION
+}
+
+Enum SubmissionStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  NEEDS_REVISION
+  REJECTED
+  ARCHIVED
+}
+
+Enum ReviewDecision {
+  COMMENT
+  APPROVE
+  REQUEST_CHANGES
+  REJECT
+}
+
+Enum DefenseStatus {
+  SCHEDULED
+  RESCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+Enum AdviserScheduleItemType {
+  CONSULTATION
+  DEADLINE
+  MEETING
+  REMINDER
+  EVENT
+  REVIEW
+}
+
+Enum AdviserScheduleItemStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+Enum EvaluationRecommendation {
+  PENDING
+  PASSED
+  PASSED_MINOR
+  PASSED_MAJOR
+  REDEFENSE
+  FAILED
+}
+
+Enum DefensePanelRole {
+  CHAIR
+  MEMBER
+}
+
+Enum NotificationStatus {
+  UNREAD
+  READ
+  ARCHIVED
+}
+
+Enum IndustryProjectStatus {
+  PROPOSED
+  ACTIVE
+  COMPLETED
+  TERMINATED
+}
+
+Ref: PasswordResetToken.userId > User.id [delete: Cascade]
+
+Ref: password_reset_codes.userId > User.id [delete: Cascade]
+
+Ref: uploaded_files.userId > User.id [delete: Cascade]
+
+Ref: uploaded_files.projectId > Project.id [delete: Set Null]
+
+Ref: uploaded_files.submissionId > Submission.id [delete: Set Null]
+
+Ref: uploaded_files.checkpointId > MilestoneCheckpoint.id [delete: Set Null]
+
+Ref: GroupMember.groupId > Group.id [delete: Cascade]
+
+Ref: GroupMember.userId > User.id [delete: Cascade]
+
+Ref: Project.departmentId > Department.id [delete: Set Null]
+
+Ref: Project.academicYearId > AcademicYear.id [delete: Set Null]
+
+Ref: Project.groupId > Group.id [delete: Set Null]
+
+Ref: Project.ownerId > User.id [delete: Set Null]
+
+Ref: Project.adviserId > User.id [delete: Set Null]
+
+Ref: Milestone.projectId > Project.id [delete: Cascade]
+
+Ref: MilestoneCheckpoint.projectId > Project.id [delete: Cascade]
+
+Ref: MilestoneCheckpoint.milestoneId > Milestone.id [delete: Cascade]
+
+Ref: Submission.projectId > Project.id [delete: Cascade]
+
+Ref: Submission.milestoneId > Milestone.id [delete: Set Null]
+
+Ref: Submission.checkpointId > MilestoneCheckpoint.id [delete: Set Null]
+
+Ref: Submission.submittedById > User.id [delete: Set Null]
+
+Ref: ReviewComment.submissionId > Submission.id [delete: Cascade]
+
+Ref: ReviewComment.authorId > User.id [delete: Set Null]
+
+Ref: ReviewComment.resolvedById > User.id [delete: Set Null]
+
+Ref: DefenseSchedule.projectId > Project.id [delete: Cascade]
+
+Ref: DefenseSchedule.scheduledById > User.id [delete: Set Null]
+
+Ref: AdviserScheduleItem.projectId > Project.id [delete: Cascade]
+
+Ref: AdviserScheduleItem.scheduledById > User.id [delete: Set Null]
+
+Ref: Evaluation.projectId > Project.id [delete: Cascade]
+
+Ref: Evaluation.defenseScheduleId > DefenseSchedule.id [delete: Set Null]
+
+Ref: Evaluation.evaluatorId > User.id [delete: Set Null]
+
+Ref: Notification.userId > User.id [delete: Cascade]
+
+Ref: AuditLog.actorId > User.id [delete: Set Null]
+
+Ref: BrandingAsset.uploadedById > User.id [delete: Set Null]
+
+Ref: IndustryProject.partnerId > IndustryPartner.id [delete: Restrict]
+
+Ref: IndustryProject.projectId > Project.id [delete: Restrict]
+
+Ref: ImpactFeedback.industryProjectId > IndustryProject.id [delete: Cascade]
+
+Ref: ImpactFeedback.partnerId > IndustryPartner.id [delete: Restrict]

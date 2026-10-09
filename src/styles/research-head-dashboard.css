@@ -1,0 +1,380 @@
+/* Research Head → Dashboard. Layout only; colors use the existing theme variables and the
+   existing chart colors. Every rule is scoped under .rh-dash. Breakpoints are container queries,
+   so they follow the collapsible sidebar as well as the viewport. */
+
+.rh-dash {
+  container-type: inline-size;
+  container-name: rh-dash;
+  gap: 1.1rem;
+}
+
+/* ---------- Header: title, scope, and the only set of controls ---------- */
+
+.rh-dash-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+}
+
+.rh-dash-header h1 {
+  margin: 0;
+  color: var(--primary-dark);
+  font-family: inherit;
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.rh-dash-header .admin-note {
+  margin: 0.2rem 0 0;
+  font-size: 0.82rem;
+}
+
+.rh-dash-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rh-dash-select {
+  height: 2.25rem;
+  padding: 0 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.84rem;
+}
+
+.rh-dash .rh-dash-btn {
+  gap: 0.45rem;
+  height: 2.25rem;
+  min-height: 2.25rem;
+  padding: 0 0.85rem;
+  border-radius: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.rh-dash .rh-dash-btn i {
+  font-size: 0.8rem;
+}
+
+.rh-dash .rh-dash-btn--sm {
+  height: 1.95rem;
+  min-height: 1.95rem;
+  padding: 0 0.7rem;
+  font-size: 0.78rem;
+}
+
+/* ---------- KPI row ---------- */
+
+.rh-dash-kpis {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.rh-dash-kpi {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  min-width: 0;
+}
+
+.rh-dash-kpi > div {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.rh-dash-kpi-icon {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 0.6rem;
+  background: rgba(0, 58, 143, 0.08);
+  color: var(--primary);
+  font-size: 0.85rem;
+}
+
+.rh-dash-kpi-label {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rh-dash-kpi-value {
+  color: var(--primary);
+  font-size: 1.4rem;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.rh-dash-kpi-detail {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.74rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Chart grids ---------- */
+
+.rh-dash-grid {
+  display: grid;
+  gap: 1.1rem;
+  align-items: stretch;
+}
+
+.rh-dash-grid--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.rh-dash-grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rh-dash .dashboard-card {
+  border-radius: 0.75rem;
+}
+
+.rh-dash .dashboard-card-head {
+  padding: 0.85rem 1.1rem;
+}
+
+.rh-dash .dashboard-card-head h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.rh-dash .dashboard-card-head p {
+  font-size: 0.78rem;
+}
+
+.rh-dash .dashboard-card-body {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9rem 1.1rem 1rem;
+}
+
+.rh-dash .rh-dash-donut {
+  position: relative;
+  height: 200px;
+}
+
+/* ---------- Legends ---------- */
+
+.rh-dash-legend {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rh-dash-legend li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.4rem 0;
+  font-size: 0.82rem;
+}
+
+.rh-dash-legend li + li {
+  border-top: 1px solid rgba(231, 229, 228, 0.8);
+}
+
+.rh-dash-legend--inline {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 1.25rem;
+}
+
+.rh-dash-legend--inline li + li {
+  border-top: 0;
+}
+
+.rh-dash-legend-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.rh-dash-legend-value {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.rh-dash-legend strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.rh-dash-dot {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+}
+
+/* ---------- Department table ---------- */
+
+.rh-dash-table-card {
+  border-radius: 0.75rem;
+}
+
+.rh-dash .rh-dash-table-head {
+  padding: 0.85rem 1.1rem;
+}
+
+.rh-dash .rh-dash-table-head h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.rh-dash .rh-dash-table th,
+.rh-dash .rh-dash-table td {
+  padding: 0.6rem 0.9rem;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.rh-dash .rh-dash-table th {
+  font-size: 0.7rem;
+}
+
+.rh-dash .rh-dash-table td {
+  font-size: 0.84rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.rh-dash .rh-dash-table .rh-num {
+  text-align: right;
+}
+
+.rh-dash-dept-name {
+  margin-left: 0.5rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+/* ---------- Responsive (content width, so the sidebar state counts) ---------- */
+
+@container rh-dash (max-width: 1200px) {
+  .rh-dash-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@container rh-dash (max-width: 1050px) {
+  .rh-dash-grid--3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rh-dash-grid--3 > :last-child { grid-column: 1 / -1; }
+}
+
+@container rh-dash (max-width: 760px) {
+  .rh-dash-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rh-dash-grid--3,
+  .rh-dash-grid--2 { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ---------- Library Dashboard Main Section Navigation Tabs ---------- */
+
+.library-dash-tabs-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin: 0.5rem 0 0.25rem;
+}
+
+.library-dash-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 0.3rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.library-dash-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.library-dash-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 0.55rem;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.16s ease;
+  line-height: 1.2;
+}
+
+.library-dash-tab:hover {
+  color: var(--primary);
+  background: rgba(0, 58, 143, 0.05);
+}
+
+.library-dash-tab.is-active {
+  background: var(--primary, #003A8F);
+  color: #ffffff;
+  border-color: var(--primary, #003A8F);
+  box-shadow: 0 2px 8px rgba(0, 58, 143, 0.22);
+}
+
+.library-dash-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1;
+  background: rgba(0, 58, 143, 0.09);
+  color: var(--primary);
+}
+
+.library-dash-tab.is-active .library-dash-tab-badge {
+  background: rgba(255, 255, 255, 0.24);
+  color: #ffffff;
+}
+
+.library-dash-tab-hint {
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+

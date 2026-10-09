@@ -1,0 +1,613 @@
+/* Roles & Permissions. Colors come from the --sa-* tokens set by the shared AdminPage wrapper
+   (ui/system-admin-ui.module.css), which follow Theme & Branding and switch for the dark portal theme. */
+
+/* ---------- Outer spacing ----------
+   Drop the shell's extra frame (1.5rem padding, tinted panel, near-full-screen min-height) on this
+   page so the banner and cards sit directly on the page with even spacing. */
+:global(.student-shell .student-global-content):has(.toolbar) {
+  min-height: 0 !important;
+  padding: 0.25rem 0 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+/* ---------- Header banner ---------- */
+.toolbar {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 2rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 14%, var(--sa-border));
+  border-radius: 1.1rem;
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--color-accent) 16%, transparent), transparent 42%),
+    radial-gradient(circle at 0% 100%, color-mix(in srgb, var(--color-primary) 10%, transparent), transparent 50%),
+    var(--sa-surface);
+  box-shadow: var(--sa-shadow);
+  padding: 1.25rem 1.5rem;
+}
+
+.heroCopy {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 16rem;
+  flex: 1 1 24rem;
+}
+
+.heroKicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: fit-content;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 9%, var(--sa-surface));
+  color: var(--sa-primary-text);
+  padding: 0.25rem 0.7rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.intro {
+  margin: 0;
+  color: var(--sa-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.heroStats {
+  display: flex;
+  gap: 0;
+  margin: 0;
+}
+
+.heroStats > div {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0 1.25rem;
+  border-left: 1px solid var(--sa-border);
+}
+
+.heroStats > div:first-child {
+  border-left: 0;
+  padding-left: 0;
+}
+
+.heroStats dt {
+  color: var(--sa-muted);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.heroStats dd {
+  margin: 0;
+  color: var(--sa-primary-text);
+  font-size: 1.35rem;
+  font-weight: 850;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.segmented {
+  display: inline-flex;
+  gap: 0.15rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 7%, var(--sa-surface));
+  padding: 0.22rem;
+}
+
+.segment {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--sa-muted);
+  padding: 0.45rem 0.9rem;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.segment:hover {
+  color: var(--sa-primary-text);
+}
+
+.segment:focus-visible {
+  outline: 2px solid var(--sa-primary-text);
+  outline-offset: 2px;
+}
+
+.segmentActive {
+  background: var(--sa-surface);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--color-text-primary) 14%, transparent);
+  color: var(--sa-primary-text);
+}
+
+/* ---------- Role cards: as many columns as the width allows ---------- */
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: 1.1rem;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+
+  to {
+    opacity: 1;
+    translate: none;
+  }
+}
+
+/* Card: a tone-tinted wash behind the header, a thin tone bar on top, and a gentle lift on hover. */
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  overflow: hidden;
+  border: 1px solid var(--sa-border);
+  border-radius: 1rem;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--tone) 7%, var(--sa-surface)) 0, var(--sa-surface) 5.5rem);
+  box-shadow: var(--sa-shadow);
+  padding: 1.1rem 1.15rem 1.15rem;
+  animation: rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 40ms);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, var(--tone), color-mix(in srgb, var(--tone) 25%, transparent));
+}
+
+.card:hover {
+  border-color: color-mix(in srgb, var(--tone) 35%, var(--sa-border));
+  box-shadow:
+    0 14px 30px color-mix(in srgb, var(--tone) 14%, transparent),
+    var(--sa-shadow);
+  transform: translateY(-3px);
+}
+
+.tonePrimary { --tone: var(--color-primary); }
+.toneAccent { --tone: var(--color-accent); }
+.toneSuccess { --tone: var(--color-success); }
+.toneError { --tone: var(--color-error); }
+
+/* A role with no permissions defined yet: dashed, quieter card. */
+.cardPending {
+  --tone: var(--sa-muted);
+  border-style: dashed;
+  background: color-mix(in srgb, var(--sa-muted) 4%, var(--sa-surface));
+  box-shadow: none;
+}
+
+.cardPending:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.pendingNote {
+  display: inline-flex;
+  align-items: center;
+  /* Without these, the subgrid row (sized by the neighbours' "Can" lists) stretches the pill tall. */
+  align-self: start;
+  justify-self: start;
+  gap: 0.45rem;
+  width: fit-content;
+  border: 1px dashed color-mix(in srgb, var(--sa-muted) 40%, var(--sa-border));
+  border-radius: 999px;
+  color: var(--sa-muted);
+  padding: 0.3rem 0.75rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+/* Icon tile sized for the card header, with a soft ring in the role's tone. */
+.cardHead > :first-child {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--tone) 10%, transparent);
+  font-size: 0.9rem;
+}
+
+.cardTitle {
+  min-width: 0;
+  flex: 1;
+}
+
+.roleName {
+  margin: 0;
+  color: var(--sa-primary-text);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.level {
+  margin-top: 0.05rem;
+  color: var(--sa-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.count {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 14%, var(--sa-border));
+  border-radius: 999px;
+  background: var(--sa-surface);
+  color: var(--sa-primary-text);
+  padding: 0.2rem 0.6rem;
+  font-size: 0.74rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.count i {
+  color: var(--sa-muted);
+  font-size: 0.62rem;
+}
+
+.summary {
+  margin: 0;
+  color: var(--sa-muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.listTitle {
+  margin-bottom: 0.3rem;
+  color: var(--sa-muted);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.checkList {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checkList li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  color: var(--sa-text);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+/* Check / cross icons in small tinted circles. */
+.checkList i {
+  display: inline-flex;
+  width: 1.05rem;
+  height: 1.05rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.08rem;
+  border-radius: 999px;
+  font-size: 0.58rem;
+}
+
+.iconCan {
+  background: color-mix(in srgb, var(--color-success) 13%, var(--sa-surface));
+  color: var(--sa-success-text);
+}
+
+.iconCannot {
+  background: color-mix(in srgb, var(--color-error) 11%, var(--sa-surface));
+  color: var(--sa-error-text);
+}
+
+/* "Cannot" sits in a soft tinted panel so the two lists read as separate blocks. */
+.cannot {
+  margin-top: auto;
+  border: 1px solid color-mix(in srgb, var(--color-error) 10%, var(--sa-border));
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--color-error) 3%, var(--sa-surface));
+  padding: 0.65rem 0.75rem;
+}
+
+/*
+ * Align sections across a row of cards: each card spans four rows of the grid (header, summary,
+ * Can, Cannot) and shares those row heights through subgrid. So a long role name or a longer
+ * list in one card pushes the same section down in its neighbours, and every dashed "Cannot"
+ * line in a row sits at the same height. Browsers without subgrid keep the flex layout above.
+ */
+@supports (grid-template-rows: subgrid) {
+  .card {
+    display: grid;
+    grid-row: span 4;
+    grid-template-rows: subgrid;
+    row-gap: 0.6rem;
+  }
+
+  .cannot {
+    margin-top: 0;
+  }
+}
+
+/* ---------- Permission matrix ---------- */
+.matrixCard {
+  overflow: hidden;
+  border: 1px solid var(--sa-border);
+  border-top: 3px solid var(--color-primary);
+  border-radius: 1rem;
+  background: var(--sa-surface);
+  box-shadow: var(--sa-shadow);
+  animation: rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+  border-bottom: 1px solid var(--sa-border);
+  padding: 0.85rem 1.2rem;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--sa-text);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.legendHint {
+  margin-left: auto;
+  color: var(--sa-muted);
+  font-size: 0.75rem;
+}
+
+.matrixScroll {
+  overflow-x: auto;
+}
+
+.matrix {
+  width: 100%;
+  min-width: 60rem;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.matrix th,
+.matrix td {
+  border-bottom: 1px solid var(--sa-border);
+  padding: 0.75rem 0.6rem;
+}
+
+.matrix tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+/* One background for every cell, with a whole-row highlight on hover. The global admin styles stripe
+   `tbody tr:nth-child(even) td` (which skipped the sticky th column); `:nth-child(n)` matches every
+   row and just lifts specificity above that rule. */
+.matrix tbody tr:nth-child(n) > * {
+  background: var(--sa-surface);
+  transition: background-color 0.12s ease;
+}
+
+.matrix tbody tr:nth-child(n):hover > * {
+  background: color-mix(in srgb, var(--color-primary) 5%, var(--sa-surface));
+}
+
+/* First column stays visible while the roles scroll sideways on narrow screens. */
+.areaHead,
+.areaCell {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 14rem;
+  background: var(--sa-surface);
+  padding-left: 1.2rem !important;
+  text-align: left;
+}
+
+.areaHead {
+  color: var(--sa-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  vertical-align: bottom;
+}
+
+.areaCell {
+  color: var(--sa-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.areaCell i {
+  width: 1.1rem;
+  margin-right: 0.6rem;
+  color: var(--sa-primary-text);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.roleHead {
+  min-width: 6.5rem;
+  color: var(--sa-primary-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  vertical-align: bottom;
+}
+
+/* Small, centered icon tile above each role name. */
+.roleHead > :first-child {
+  display: flex;
+  width: 2rem;
+  height: 2rem;
+  margin: 0 auto 0.45rem;
+  font-size: 0.8rem;
+}
+
+.roleLabel {
+  display: block;
+}
+
+.cell {
+  text-align: center;
+  cursor: default;
+}
+
+/* Access badge: icon in a tinted circle with a matching hairline border. */
+.badge {
+  display: inline-flex;
+  width: 1.75rem;
+  height: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--pill-border);
+  border-radius: 999px;
+  background: var(--pill-bg);
+  color: var(--pill-text);
+  font-size: 0.75rem;
+  vertical-align: middle;
+}
+
+.accessFull {
+  --pill-text: var(--sa-success-text);
+  --pill-bg: color-mix(in srgb, var(--color-success) 12%, var(--sa-surface));
+  --pill-border: color-mix(in srgb, var(--color-success) 30%, var(--sa-surface));
+}
+
+.accessScoped {
+  --pill-text: var(--sa-accent-text);
+  --pill-bg: color-mix(in srgb, var(--color-accent) 16%, var(--sa-surface));
+  --pill-border: color-mix(in srgb, var(--color-accent) 40%, var(--sa-surface));
+}
+
+.accessView {
+  --pill-text: var(--sa-primary-text);
+  --pill-bg: color-mix(in srgb, var(--color-primary) 9%, var(--sa-surface));
+  --pill-border: color-mix(in srgb, var(--color-primary) 24%, var(--sa-surface));
+}
+
+/* No access: a small faint dot, so the filled pills stand out. */
+.none {
+  display: inline-block;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sa-muted) 35%, var(--sa-surface));
+  vertical-align: middle;
+}
+
+.footnote {
+  margin: 0;
+  border-top: 1px solid var(--sa-border);
+  color: var(--sa-muted);
+  padding: 0.75rem 1.2rem;
+  font-size: 0.78rem;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .matrixCard {
+    animation: none;
+  }
+
+  .card:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .heroStats {
+    width: 100%;
+  }
+
+  .heroActions {
+    width: 100%;
+  }
+}
+
+/*
+ * Dark portal theme forces h1–h4 to near-white and makes span/p text inherit
+ * (see ui/system-admin-ui.module.css); re-apply the semantic colors used here.
+ */
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .roleName,
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .roleLabel {
+  color: var(--sa-primary-text);
+}
+
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .intro,
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .summary {
+  color: var(--sa-muted);
+}
+
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .badge {
+  color: var(--pill-text);
+}
+
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .heroStats dd,
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .heroKicker,
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .count {
+  color: var(--sa-primary-text);
+}
+
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .heroStats dt,
+:global(html[data-student-theme='dark'] .student-shell .student-global-content) .pendingNote {
+  color: var(--sa-muted);
+}

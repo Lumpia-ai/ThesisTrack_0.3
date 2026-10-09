@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../../src/generated/repository-prisma"
+}
+
+datasource repositoryDb {
+  provider = "postgresql"
+}
+
+model RepositoryProject {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @repositoryDb.Uuid
+  mainProjectId String    @unique @map("main_project_id")
+  title         String
+  abstract      String?
+  adviser       String?
+  program       String?
+  department    String?
+  schoolYear    String?   @map("school_year")
+  keywords      String[]
+  manuscriptUrl String?   @map("manuscript_url")
+  status        String?   @default("ARCHIVED")
+  publishedAt   DateTime? @default(now()) @map("published_at") @repositoryDb.Timestamptz(6)
+  createdAt     DateTime? @default(now()) @map("created_at") @repositoryDb.Timestamptz(6)
+
+  authors            RepositoryAuthor[]
+  files              RepositoryFile[]
+  technologyTransfer TechnologyTransferRecord[]
+  views              RepositoryProjectView[]
+  comments           RepositoryProjectComment[]
+
+  @@map("repository_projects")
+}
+
+model RepositoryAuthor {
+  id                  String             @id @default(dbgenerated("gen_random_uuid()")) @repositoryDb.Uuid
+  repositoryProjectId String?            @map("repository_project_id") @repositoryDb.Uuid
+  repositoryProject   RepositoryProject? @relation(fields: [repositoryProjectId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  name                String
+  email               String?
+  studentId           String?            @map("student_id")
+  createdAt           DateTime?          @default(now()) @map("created_at") @repositoryDb.Timestamptz(6)
+
+  @@map("repository_authors")
+}
+
+model RepositoryFile {
+  id                  String             @id @default(dbgenerated("gen_random_uuid()")) @repositoryDb.Uuid
+  repositoryProjectId String?            @map("repository_project_id") @repositoryDb.Uuid
+  repositoryProject   RepositoryProject? @relation(fields: [repositoryProjectId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  fileName            String             @map("file_name")
+  fileUrl             String             @map("file_url")
+  fileType            String?            @map("file_type")
+  uploadedAt          DateTime?          @default(now()) @map("uploaded_at") @repositoryDb.Timestamptz(6)
+
+  @@map("repository_files")
+}
+
+model TechnologyTransferRecord {
+  id                    String             @id @default(dbgenerated("gen_random_uuid()")) @repositoryDb.Uuid
+  repositoryProjectId   String?            @map("repository_project_id") @repositoryDb.Uuid
+  repositoryProject     RepositoryProject? @relation(fields: [repositoryProjectId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  partnerName           String?            @map("partner_name")
+  requesterEmail        String?            @map("requester_email")
+  requesterOrganization String?            @map("requester_organization")
+  source                String?            @default("SYSTEM")
+  transferStatus        String?            @default("PENDING") @map("transfer_status")
+  moaUrl                String?            @map("moa_url")
+  deploymentDate        DateTime?          @map("deployment_date") @repositoryDb.Timestamptz(6)
+  remarks               String?
+  dateRecorded          DateTime?          @default(now()) @map("date_recorded") @repositoryDb.Timestamptz(6)
+
+  @@map("technology_transfer_records")
+}
+
+// One row per visit to a repository record's detail page, for the Library's
+// view statistics. Signed-in visitors are counted under their department;
+// everyone else is a guest. viewer_key (user id, or an anonymous cookie id for
+// guests) lets repeat loads within a short window be ignored.
+model RepositoryProjectView {
+  id                  String            @id @default(dbgenerated("gen_random_uuid()")) @repositoryDb.Uuid
+  repositoryProjectId String            @map("repository_project_id") @repositoryDb.Uuid
+  repositoryProject   RepositoryProject @relation(fields: [repositoryProjectId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  viewerType          String            @map("viewer_type") // 'guest' | 'user'
+  viewerKey           String            @map("viewer_key")
+  viewerRole          String?           @map("viewer_role")
+  viewerDepartment    String?           @map("viewer_department")
+  viewedAt            DateTime          @default(now()) @map("viewed_at") @repositoryDb.Timestamptz(6)
+
+  @@index([repositoryProjectId, viewedAt])
+  @@index([repositoryProjectId, viewerKey, viewedAt])
+  @@map("repository_project_views")
+}
+
+// Librarian's comments on a repository record (suggested by the library).
+// author_* are copied from the main database's user at the time of writing,
+// since the two databases can't join.
+model RepositoryProjectComment {
+  id                  String            @id @default(dbgenerated("gen_random_uuid()")) @repositoryDb.Uuid
+  repositoryProjectId String            @map("repository_project_id") @repositoryDb.Uuid
+  repositoryProject   RepositoryProject @relation(fields: [repositoryProjectId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  authorId            String            @map("author_id")
+  authorName          String            @map("author_name")
+  authorRole          String            @map("author_role")
+  body                String
+  createdAt           DateTime          @default(now()) @map("created_at") @repositoryDb.Timestamptz(6)
+  deletedAt           DateTime?         @map("deleted_at") @repositoryDb.Timestamptz(6)
+
+  @@index([repositoryProjectId, createdAt])
+  @@map("repository_project_comments")
+}

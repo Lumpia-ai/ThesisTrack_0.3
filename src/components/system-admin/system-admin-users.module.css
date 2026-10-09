@@ -1,0 +1,261 @@
+/* User Management toolbar: status tabs with counts, search, role + department filters, actions — one row
+   that wraps on narrow screens. Colors follow the Theme & Branding variables. */
+
+/* Use the full content area instead of the shell's `max-width: 1600px !important`, so a collapsed
+   sidebar on a wide screen doesn't leave empty margins (same approach as the dashboard's AdminPage wide). */
+:global(.student-shell .student-global-content):has(.page) {
+  max-width: none !important;
+  /* The Accounts card is the container here: drop the shell's extra frame (1.5rem padding, shadow,
+     and near-full-screen min-height) so there's no oversized white box around it. */
+  min-height: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.statusTabs {
+  display: inline-flex;
+  flex-shrink: 0;
+  gap: 0.15rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary, #003a8f) 7%, var(--color-surface, #fff));
+  padding: 0.22rem;
+}
+
+.statusTab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-secondary, #64748b);
+  padding: 0.4rem 0.85rem;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.statusTab:hover {
+  color: var(--color-primary, #003a8f);
+}
+
+.statusTab:focus-visible {
+  outline: 2px solid var(--color-primary, #003a8f);
+  outline-offset: 2px;
+}
+
+.statusTabActive {
+  background: var(--color-surface, #fff);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.14);
+  color: var(--color-primary, #003a8f);
+}
+
+.tabCount {
+  min-width: 1.5rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary, #003a8f) 10%, var(--color-surface, #fff));
+  padding: 0.05rem 0.45rem;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.statusTabActive .tabCount {
+  background: var(--color-primary, #003a8f);
+  color: #fff;
+}
+
+.search {
+  min-width: 14rem;
+  flex: 1 1 18rem;
+}
+
+.select {
+  width: auto;
+  min-width: 10rem;
+  flex: 0 1 13rem;
+}
+
+.toolbarActions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+/* Every row, real or filler, has the same height, so a short last page keeps the table the same size. */
+.table > tbody > tr > td {
+  height: 4.85rem;
+}
+
+.fillerRow,
+.fillerRow:hover,
+.fillerRow > td,
+.fillerRow:hover > td {
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Pagination under the accounts table: range summary on the left, page buttons on the right. */
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  /* The table already has its own border, so no divider here; just even spacing. */
+  margin-top: 1rem;
+  padding: 0 0.25rem;
+}
+
+.pageSummary {
+  color: var(--color-text-secondary, #64748b);
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.pageButtons {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.pageButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.1rem;
+  height: 2.1rem;
+  border: 1px solid color-mix(in srgb, var(--color-primary, #003a8f) 10%, #e2e8f0);
+  border-radius: 0.6rem;
+  background: var(--color-surface, #fff);
+  color: var(--color-text-primary, #0f172a);
+  padding: 0 0.55rem;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.pageButton:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--color-primary, #003a8f) 35%, #e2e8f0);
+  color: var(--color-primary, #003a8f);
+}
+
+.pageButton:focus-visible {
+  outline: 2px solid var(--color-primary, #003a8f);
+  outline-offset: 2px;
+}
+
+.pageButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pageButtonActive,
+.pageButtonActive:hover:not(:disabled) {
+  border-color: var(--color-primary, #003a8f);
+  background: var(--color-primary, #003a8f);
+  color: #fff;
+}
+
+.pageGap {
+  min-width: 1.25rem;
+  color: var(--color-text-secondary, #64748b);
+  text-align: center;
+}
+
+/* ---------- Dark theme ----------
+   The shared dark theme forces span text to near-white, and --color-primary becomes a light blue,
+   so the count badges and active page need explicit colors to stay readable. */
+:global(html[data-student-theme='dark'] .student-shell) .statusTabs {
+  background: var(--sad-surface-2, #1b2330);
+}
+
+:global(html[data-student-theme='dark'] .student-shell) .statusTab {
+  color: var(--sad-muted, #abb6c6);
+}
+
+:global(html[data-student-theme='dark'] .student-shell) .statusTab:hover,
+:global(html[data-student-theme='dark'] .student-shell) .statusTabActive {
+  color: var(--sad-text, #f3f6fa);
+}
+
+:global(html[data-student-theme='dark'] .student-shell) .statusTabActive {
+  background: var(--sad-surface-3, #232d3c);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
+}
+
+:global(html[data-student-theme='dark'] .student-shell) .tabCount {
+  background: var(--sad-surface-3, #232d3c);
+  color: var(--sad-text-2, #dbe2eb) !important;
+}
+
+:global(html[data-student-theme='dark'] .student-shell) .statusTabActive .tabCount {
+  background: var(--sad-primary, #6f95e6);
+  color: #0b1017 !important;
+}
+
+:global(html[data-student-theme='dark'] .student-shell) .pageSummary {
+  color: var(--sad-muted, #abb6c6) !important;
+}
+
+:global(html[data-student-theme='dark'] .student-shell) .pageButton {
+  border-color: var(--sad-border-strong, #354052);
+  background: var(--sad-surface-2, #1b2330);
+  color: var(--sad-text, #f3f6fa);
+}
+
+:global(html[data-student-theme='dark'] .student-shell) .pageButton:hover:not(:disabled) {
+  border-color: var(--sad-primary, #6f95e6);
+  color: var(--sad-text, #f3f6fa);
+}
+
+:global(html[data-student-theme='dark'] .student-shell) .pageButtonActive,
+:global(html[data-student-theme='dark'] .student-shell) .pageButtonActive:hover:not(:disabled) {
+  border-color: var(--sad-primary, #6f95e6);
+  background: var(--sad-primary, #6f95e6);
+  color: #0b1017;
+}
+
+:global(html[data-student-theme='dark'] .student-shell) .pageGap {
+  color: var(--sad-muted, #abb6c6);
+}
+
+@media (max-width: 640px) {
+  .pagination {
+    justify-content: center;
+  }
+
+  .statusTabs,
+  .search,
+  .select {
+    flex: 1 1 100%;
+  }
+
+  .statusTab {
+    flex: 1;
+    justify-content: center;
+  }
+}

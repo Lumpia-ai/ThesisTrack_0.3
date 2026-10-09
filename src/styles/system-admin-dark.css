@@ -1,0 +1,767 @@
+/*
+ * System Admin dark theme.
+ *
+ * Applies when the profile menu sets html[data-student-theme="dark"], and only on pages that
+ * render the System Admin shell (.is-system-admin), so other portals keep their own dark styles.
+ * Selectors are scoped with body:has(...) rather than the shell itself, because some modals
+ * (User Management) render next to the shell rather than inside it.
+ *
+ * Approach:
+ *  1. One calm palette (--sad-*): neutral slate surfaces with a faint brand tint, soft light text,
+ *     and a lighter version of the brand primary that stays readable as text on dark surfaces.
+ *  2. The brand variables (--color-*, plus their short aliases) are redefined on the shell, so
+ *     every style built on them adapts automatically.
+ *  3. Targeted overrides for the places that hard-code light colors (#fff, #f8fafc, dark text).
+ *
+ * Loaded last in app/system-admin/layout.tsx. Some overrides need !important because the shared
+ * portal stylesheet uses !important in its own dark rules.
+ */
+
+/* Capture the brand colors one level up (body inherits them from <html>), so the shell can mix
+   them without a self-referencing variable. */
+html[data-student-theme='dark'] body {
+  --sad-brand: var(--color-primary);
+  --sad-brand-secondary: var(--color-secondary);
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) > * {
+  /* ---------- Palette ---------- */
+  /* Surfaces step up clearly (bg → card → inset → hover) so panels separate without heavy borders. */
+  --sad-bg: color-mix(in srgb, var(--sad-brand) 6%, #0b1017);
+  --sad-surface: color-mix(in srgb, var(--sad-brand) 7%, #151c27);
+  --sad-surface-2: color-mix(in srgb, var(--sad-brand) 8%, #1b2330);
+  --sad-surface-3: color-mix(in srgb, var(--sad-brand) 10%, #232d3c);
+  --sad-border: color-mix(in srgb, var(--sad-brand) 12%, #28323f);
+  --sad-border-strong: color-mix(in srgb, var(--sad-brand) 14%, #354052);
+  /* Text: bright primary text, clearly readable secondary text (all ≥ 7:1 except subtle hints). */
+  --sad-text: #f3f6fa;
+  --sad-text-2: #dbe2eb;
+  --sad-muted: #abb6c6;
+  --sad-subtle: #7f8a9c;
+  /* Brand primary lifted toward a soft blue: ≈4:1 as text on the surfaces, ≈4:1 under white text. */
+  --sad-primary: color-mix(in srgb, var(--sad-brand) 45%, #8fb3ff);
+  --sad-primary-strong: color-mix(in srgb, var(--sad-brand) 20%, #b4ccff);
+  --sad-primary-soft: color-mix(in srgb, var(--sad-primary) 16%, transparent);
+  --sad-accent: var(--color-accent);
+  --sad-success: #4ade80;
+  --sad-warning: #fbbf24;
+  --sad-error: #f87171;
+  --sad-shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px rgb(0 0 0 / 0.25);
+  /* Page styles mix their tints and borders with these (white / light grey in light mode),
+     so tinted icons, pills, and borders stay dark instead of turning into light patches. */
+  --sad-mix-base: var(--sad-surface);
+  --sad-mix-border: var(--sad-border-strong);
+
+  /* ---------- Brand variables, redefined for dark ---------- */
+  --color-primary: var(--sad-primary);
+  --color-secondary: color-mix(in srgb, var(--sad-brand-secondary) 45%, #a5b8ff);
+  --color-primary-hover: var(--sad-primary-strong);
+  --color-primary-light: var(--sad-primary-soft);
+  --color-primary-dark: var(--sad-primary-strong);
+  --color-background: var(--sad-bg);
+  --color-surface: var(--sad-surface);
+  --color-border: var(--sad-border);
+  --color-text-primary: var(--sad-text);
+  --color-text-secondary: var(--sad-muted);
+  --color-success: #22c55e;
+  --color-error: #ef4444;
+  /* Short aliases are resolved once on :root, so they must be set again here. */
+  --primary: var(--color-primary);
+  --secondary: var(--color-secondary);
+  --bg: var(--sad-bg);
+  --panel: var(--sad-surface);
+  --surface: var(--sad-surface);
+  --text: var(--sad-text);
+  --muted: var(--sad-muted);
+  --border: var(--sad-border);
+  --primary-light: var(--sad-primary-soft);
+  --primary-dark: var(--sad-primary-strong);
+  --hover: var(--sad-primary-strong);
+  --shadow-sm: var(--sad-shadow);
+
+  color-scheme: dark;
+}
+
+/* ---------- Shell: calm, neutral chrome instead of saturated navy ---------- */
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .student-shell.is-system-admin {
+  background: var(--sad-bg) !important;
+  color: var(--sad-text);
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .student-global-main {
+  background: var(--sad-bg) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .student-global-navbar {
+  border-bottom: 1px solid var(--sad-border) !important;
+  background: color-mix(in srgb, var(--sad-surface) 92%, transparent) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(10px);
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .student-global-sidebar {
+  border-right: 1px solid var(--sad-border) !important;
+  background: var(--sad-surface) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .student-global-content {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* ---------- Cards and panels ---------- */
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(
+  .admin-section-card,
+  .admin-kpi-card:not(.sys-ops-kpi),
+  .admin-impact-card:not(.sys-maint-hero),
+  .sys-settings-panel,
+  .sys-maint-card,
+  .branding-summary,
+  .branding-status-strip,
+  .branding-command-bar,
+  .branding-controls-column,
+  .branding-preview-card,
+  .branding-hero-panel
+) {
+  border-color: var(--sad-border) !important;
+  background: var(--sad-surface) !important;
+  box-shadow: var(--sad-shadow) !important;
+  color: var(--sad-text);
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(
+  .admin-section-head,
+  .sys-settings-footer,
+  .sys-maint-card-head,
+  .sys-maint-card-foot,
+  .sys-ops-foot,
+  .sys-ops-filters
+) {
+  border-color: var(--sad-border) !important;
+}
+
+/* Soft inner areas (were #f8fafc) */
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(
+  .sys-maint-card-foot,
+  .sys-ops-foot,
+  .sys-ops-filters,
+  .branding-page .branding-controls-column .branding-command-bar
+) {
+  background: var(--sad-surface-2) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .admin-section-head p,
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .admin-section-head small {
+  color: var(--sad-muted);
+}
+
+/* ---------- Form controls ---------- */
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .student-global-content .form-field {
+  border-color: transparent !important;
+  background: none !important;
+  color: inherit !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .student-global-content .form-field > label,
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .student-global-content .form-field label {
+  color: var(--sad-text-2) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .student-global-content :is(input, select, textarea):not([type='checkbox']):not([type='radio']):not([type='color']):not([type='range']):not(.sa-select-bare):not(.branding-preview-frame *),
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .modal :is(input, select, textarea):not([type='checkbox']):not([type='radio']):not([type='color']):not([type='range']) {
+  border-color: var(--sad-border-strong) !important;
+  background-color: var(--sad-surface-2) !important;
+  color: var(--sad-text) !important;
+  box-shadow: none !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(input, textarea)::placeholder {
+  color: var(--sad-subtle) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(input, select, textarea):not([type='checkbox']):not([type='radio']):focus {
+  border-color: color-mix(in srgb, var(--sad-primary) 70%, transparent) !important;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--sad-primary) 22%, transparent) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(input, select, textarea):disabled {
+  background-color: var(--sad-surface) !important;
+  color: var(--sad-subtle) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 100px var(--sad-surface-2) inset !important;
+  -webkit-text-fill-color: var(--sad-text) !important;
+}
+
+/* Search box wrapper (icon + input) */
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .system-input-shell {
+  border-color: var(--sad-border-strong) !important;
+  background: var(--sad-surface-2) !important;
+  color: var(--sad-muted);
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .system-input-shell input {
+  border: 0 !important;
+  background: transparent !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) select option {
+  background: var(--sad-surface-2);
+  color: var(--sad-text);
+}
+
+/* ---------- Buttons ---------- */
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .btn-outline {
+  border-color: var(--sad-border-strong) !important;
+  background: var(--sad-surface-2) !important;
+  color: var(--sad-text-2) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .btn-outline:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--sad-primary) 50%, var(--sad-border-strong)) !important;
+  background: var(--sad-surface-3) !important;
+  color: var(--sad-text) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .btn-primary {
+  border-color: var(--sad-primary) !important;
+  background: var(--sad-primary) !important;
+  color: #0c1118 !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .btn-primary:hover:not(:disabled) {
+  background: var(--sad-primary-strong) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .btn-primary i {
+  color: inherit !important;
+}
+
+/* ---------- Tables ---------- */
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .student-global-content table th {
+  border-color: var(--sad-border) !important;
+  background: var(--sad-surface-2) !important;
+  color: var(--sad-muted) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .student-global-content table td {
+  border-color: var(--sad-border) !important;
+  background: var(--sad-surface) !important;
+  color: var(--sad-text) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .student-global-content tbody tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--sad-surface-2) 60%, var(--sad-surface)) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .student-global-content tbody tr:hover td {
+  background: var(--sad-surface-3) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .student-global-content :is(.table-scroll, .table-shell) {
+  border-color: var(--sad-border) !important;
+  background: var(--sad-surface) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .table-title {
+  color: var(--sad-text) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .table-subtitle {
+  color: var(--sad-muted) !important;
+}
+
+/* Blank filler rows keep the table height but stay invisible. */
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) tbody tr[aria-hidden='true'] td {
+  border-color: transparent !important;
+  background: transparent !important;
+}
+
+/* ---------- Badges, pills, chips ---------- */
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .status-badge.status-approved,
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-backups-status,
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-settings-status.is-open {
+  border-color: rgb(74 222 128 / 0.25) !important;
+  background: rgb(74 222 128 / 0.12) !important;
+  color: var(--sad-success) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .status-badge.status-critical {
+  border-color: rgb(248 113 113 / 0.25) !important;
+  background: rgb(248 113 113 / 0.12) !important;
+  color: var(--sad-error) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-backups-status.is-verified {
+  border-color: color-mix(in srgb, var(--sad-primary) 30%, transparent) !important;
+  background: var(--sad-primary-soft) !important;
+  color: var(--sad-primary-strong) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .admin-inline-badge {
+  border-color: var(--sad-border-strong) !important;
+  background: var(--sad-surface-2) !important;
+  color: var(--sad-text-2) !important;
+}
+
+/* Role pills, avatars, and icons: one bright tone per role category, on a tinted dark fill.
+   Explicit colors (not currentColor), because the shared dark theme forces span text to white. */
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(.system-role-pill, .system-role-avatar, .system-role-icon) {
+  --role-tone: #9dbbff;
+  border-color: color-mix(in srgb, var(--role-tone) 38%, transparent) !important;
+  background: color-mix(in srgb, var(--role-tone) 15%, var(--sad-surface)) !important;
+  color: var(--role-tone) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(.system-role-pill, .system-role-avatar, .system-role-icon) :is(i, span, strong) {
+  color: inherit !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(.system-role-pill, .system-role-avatar, .system-role-icon).is-technical { --role-tone: #b4bcff; }
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(.system-role-pill, .system-role-avatar, .system-role-icon).is-oversight { --role-tone: #7dd3fc; }
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(.system-role-pill, .system-role-avatar, .system-role-icon).is-academic { --role-tone: #6ee7b7; }
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(.system-role-pill, .system-role-avatar, .system-role-icon).is-workflow { --role-tone: #fcd34d; }
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(.system-role-pill, .system-role-avatar, .system-role-icon).is-external { --role-tone: #c4b5fd; }
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(.system-role-pill, .system-role-avatar, .system-role-icon).is-student { --role-tone: #5eead4; }
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(.system-role-pill, .system-role-avatar, .system-role-icon).is-legacy { --role-tone: #cbd5e1; }
+
+/* ---------- Banners, empty states, dropdown menus ---------- */
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .admin-result-banner {
+  border-color: var(--sad-border-strong) !important;
+  background: var(--sad-surface-2) !important;
+  color: var(--sad-text) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .admin-empty-state {
+  color: var(--sad-muted) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .system-suspend-dropdown {
+  border-color: var(--sad-border-strong) !important;
+  background: var(--sad-surface-2) !important;
+  box-shadow: 0 16px 36px rgb(0 0 0 / 0.45) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .system-suspend-dropdown button:hover {
+  background: var(--sad-surface-3) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .system-suspend-dropdown :is(small, .system-suspend-dropdown-title) {
+  color: var(--sad-muted) !important;
+}
+
+/* ---------- Modals (user details, create staff account) ---------- */
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .modal {
+  background: rgb(4 7 12 / 0.7);
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .modal-content {
+  border-color: var(--sad-border) !important;
+  background: var(--sad-surface) !important;
+  box-shadow: 0 30px 70px rgb(0 0 0 / 0.55) !important;
+  color: var(--sad-text) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(.modal-header, .modal-footer) {
+  border-color: var(--sad-border) !important;
+  background: var(--sad-surface) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .modal-header p {
+  color: var(--sad-muted) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .close-modal {
+  border-color: var(--sad-border-strong) !important;
+  background: var(--sad-surface-2) !important;
+  color: var(--sad-text-2) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .system-staff-modal .modal-body {
+  background: var(--sad-bg) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(
+  .system-staff-modal .system-role-panel,
+  .system-staff-modal .system-staff-form-panel,
+  .system-staff-modal .system-role-option
+) {
+  border-color: var(--sad-border) !important;
+  background: var(--sad-surface) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .system-staff-modal .system-role-option.is-active {
+  border-color: var(--sad-primary) !important;
+  background: var(--sad-primary-soft) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .system-staff-modal .system-role-option::after {
+  border-color: var(--sad-border-strong);
+  background: var(--sad-surface-2);
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .system-staff-modal .system-role-option.is-active::after {
+  border-color: var(--sad-primary);
+  background: var(--sad-primary);
+  color: #0c1118;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .system-staff-modal .system-role-option :is(small) {
+  color: var(--sad-muted) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .system-staff-modal .system-role-option em {
+  color: var(--sad-warning) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .system-staff-modal .system-security-panel {
+  border-color: var(--sad-border) !important;
+  background: var(--sad-surface-2) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .system-staff-modal .system-security-head p {
+  color: var(--sad-muted) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .system-password-meter {
+  background: var(--sad-surface-3) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .system-password-hints span {
+  border-color: var(--sad-border-strong) !important;
+  background: var(--sad-surface) !important;
+  color: var(--sad-muted) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .system-password-hints span.is-met {
+  border-color: rgb(74 222 128 / 0.3) !important;
+  background: rgb(74 222 128 / 0.12) !important;
+  color: var(--sad-success) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .system-password-toggle {
+  color: var(--sad-muted) !important;
+}
+
+/* ==========================================================================
+   Page-specific overrides (styles in admin-portal-pages.css with light colors)
+   ========================================================================== */
+
+/* ---------- Theme & Branding ---------- */
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .branding-page :is(
+  .branding-repeater-card,
+  .branding-subsection-panel,
+  .branding-department-editor,
+  .branding-asset-control,
+  .branding-color-control,
+  .branding-preset-option,
+  .branding-generated-chip,
+  .branding-asset-preview,
+  .branding-summary-logo,
+  .branding-color-picker
+) {
+  border-color: var(--sad-border) !important;
+  background: var(--sad-surface-2) !important;
+  color: var(--sad-text-2);
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .branding-page :is(
+  .branding-summary-stats dt,
+  .branding-summary-stats dd small,
+  .branding-management-heading span,
+  .branding-field-note,
+  .branding-asset-copy p,
+  .branding-color-control-head p,
+  .branding-preset-option small,
+  .form-field > label
+) {
+  color: var(--sad-muted) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .branding-page :is(.branding-summary-identity h2, .branding-summary-stats dd) {
+  color: var(--sad-text) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .branding-page .branding-summary-stats .is-success dd {
+  color: var(--sad-success) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .branding-page .branding-summary-stats .is-warning dd {
+  color: var(--sad-warning) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .branding-page .branding-controls-column > .admin-section-card {
+  border-color: var(--sad-border) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .branding-page .branding-toggle-line {
+  color: var(--sad-text-2) !important;
+}
+
+/* Branding live preview: a mock of the real portal drawn with the chosen brand colors
+   (--preview-*). It must look the same in both admin themes, so its colors are restated here;
+   otherwise the shared dark theme turns headings and bold text white on the preview's light cards. */
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(
+  .branding-preview-frame,
+  .branding-preview-frame :is(h2, h3),
+  .branding-preview-live-brand-main strong,
+  .branding-preview-form-card select,
+  .branding-preview-table-row.is-head,
+  .branding-preview-auth-card input,
+  .branding-preview-landing-modules strong,
+  .branding-preview-portal-screen header strong,
+  .branding-preview-portal-screen article strong,
+  .branding-preview-navbar .branding-preview-brand strong,
+  .branding-preview-auth-card .branding-preview-brand strong,
+  .branding-preview-landing-nav .branding-preview-brand strong
+) {
+  color: var(--preview-text-primary) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(
+  .branding-preview-frame p,
+  .branding-preview-brand small,
+  .branding-preview-user,
+  .branding-preview-grid small,
+  .branding-preview-form-card label,
+  .branding-preview-table-row,
+  .branding-preview-auth-card label,
+  .branding-preview-landing-nav > div
+) {
+  color: var(--preview-text-secondary) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(
+  .branding-preview-logo,
+  .branding-preview-live-logo,
+  .branding-preview-live-brand-main span,
+  .branding-preview-grid strong,
+  .branding-preview-auth-pill,
+  .branding-preview-landing-hero > span,
+  .branding-preview-landing-hero button.is-outline,
+  .branding-preview-portal-screen article span
+) {
+  color: var(--preview-primary) !important;
+}
+
+/* Light text on the preview's colored sidebar and filled buttons. */
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(
+  .branding-preview-live-meta > span,
+  .branding-preview-toolbar button:not(.is-secondary),
+  .branding-preview-portal-screen button,
+  .branding-preview-landing-hero button:not(.is-outline),
+  .branding-preview-landing-nav button,
+  .branding-preview-auth-card button,
+  .branding-preview-portal-screen aside > span.is-active,
+  .branding-preview-portal-screen aside .branding-preview-brand strong,
+  .branding-preview-sidebar .branding-preview-brand strong,
+  .branding-preview-sidebar nav span.is-active
+) {
+  color: #fff !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(
+  .branding-preview-portal-screen aside > span,
+  .branding-preview-sidebar nav span
+):not(.is-active) {
+  color: rgb(255 255 255 / 0.78) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(
+  .branding-preview-portal-screen aside .branding-preview-brand small,
+  .branding-preview-sidebar .branding-preview-brand small
+) {
+  color: rgb(255 255 255 / 0.72) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .branding-preview-frame :is(i, span):not([class]) {
+  color: inherit !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(.branding-preview-alert, .branding-preview-status.is-info) {
+  color: var(--preview-info) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(.branding-preview-portal-alert, .branding-preview-table b) {
+  color: var(--preview-success) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .branding-preview-table b.is-warning {
+  color: var(--preview-warning) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .branding-preview-landing-modules i {
+  color: var(--preview-accent) !important;
+}
+
+/* The preview frame itself sits in a dark card: give it a hairline so its light surface has an edge. */
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .branding-preview-frame {
+  outline: 1px solid var(--sad-border);
+}
+
+/* ---------- System Settings ---------- */
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-settings-page {
+  --sys-settings-line: var(--sad-border);
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-settings-hero {
+  background:
+    radial-gradient(circle at 92% -30%, color-mix(in srgb, var(--sad-accent) 16%, transparent), transparent 45%),
+    linear-gradient(135deg, color-mix(in srgb, var(--sad-brand) 45%, #111827), color-mix(in srgb, var(--sad-brand) 18%, #0f141c)) !important;
+  box-shadow: var(--sad-shadow) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-settings-block {
+  border-color: var(--sad-border) !important;
+  background: color-mix(in srgb, var(--sys-settings-tone) 7%, var(--sad-surface-2)) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(.sys-settings-chips span, .sys-settings-route li span) {
+  border-color: var(--sad-border-strong) !important;
+  background: var(--sad-surface) !important;
+  color: var(--sad-text-2) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-settings-route li {
+  color: var(--sad-text-2) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-settings-route li:last-child span {
+  border-color: var(--sys-settings-tone) !important;
+  background: var(--sys-settings-tone) !important;
+  color: #0c1118 !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(.sys-settings-hint, .sys-settings-section header p, .sys-settings-block-head span) {
+  color: var(--sad-muted) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-settings-status.is-closed {
+  background: var(--sad-surface-3) !important;
+  color: var(--sad-muted) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-settings-footer {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--sad-accent) 8%, transparent), var(--sad-surface-2) 55%) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-settings-footer p {
+  color: var(--sad-text-2) !important;
+}
+
+/* ---------- Logs & Security / Backup & Restore ---------- */
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-ops-page {
+  --sys-ops-line: var(--sad-border);
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-ops-page .sys-ops-kpi {
+  border-color: var(--sad-border) !important;
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--sad-brand) 30%, transparent), transparent 55%),
+    var(--sad-surface) !important;
+  box-shadow: var(--sad-shadow) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-ops-page .sys-ops-kpi .admin-kpi-meta {
+  color: var(--sad-muted) !important;
+}
+
+/* Brighter log tones so the icons and type tags read clearly on dark surfaces. */
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-logs-item { --tone: #7fb0ff; }
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-logs-item.is-approved { --tone: #4ade80; }
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-logs-item.is-warning { --tone: #fbbf24; }
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-logs-tone {
+  color: var(--tone) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(.sys-logs-item + .sys-logs-item, .sys-backups-table td) {
+  border-color: var(--sad-border) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-logs-item:hover {
+  background: var(--sad-surface-2) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(.sys-logs-detail, .sys-logs-item time, .sys-backups-muted, .sys-ops-foot) {
+  color: var(--sad-muted) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(.sys-logs-detail code, .sys-logs-actor) {
+  border-color: var(--sad-border-strong) !important;
+  background: var(--sad-surface-2) !important;
+  color: var(--sad-text-2) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-backups-file span {
+  color: var(--sad-primary-strong) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-backups-file em {
+  background: var(--sad-primary) !important;
+  color: #0c1118 !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-backups-icon-btn {
+  border-color: var(--sad-border-strong) !important;
+  background: var(--sad-surface-2) !important;
+  color: var(--sad-text-2) !important;
+}
+
+/* ---------- Maintenance Mode ---------- */
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-maint-page {
+  --sys-maint-line: var(--sad-border);
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-maint-page .sys-maint-hero:not(.is-offline) {
+  background:
+    radial-gradient(circle at 88% -20%, color-mix(in srgb, var(--sad-accent) 16%, transparent), transparent 45%),
+    linear-gradient(135deg, color-mix(in srgb, var(--sad-brand) 45%, #111827), color-mix(in srgb, var(--sad-brand) 18%, #0f141c)) !important;
+  box-shadow: var(--sad-shadow) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(.sys-maint-card-head p, .sys-maint-duration, .sys-maint-list small, .sys-maint-foot-note, .sys-maint-list-head) {
+  color: var(--sad-muted) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) :is(.sys-maint-list, .sys-maint-list li + li) {
+  border-color: var(--sad-border) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-maint-list li.is-off {
+  background: var(--sad-surface-2) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-maint-presets button {
+  border-color: var(--sad-border-strong) !important;
+  background: var(--sad-surface-2) !important;
+  color: var(--sad-text-2) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-maint-preview-banner {
+  border-color: rgb(251 191 36 / 0.3) !important;
+  background: rgb(251 191 36 / 0.08) !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-maint-preview-banner :is(strong, small) {
+  color: #fde68a !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-maint-blocked span {
+  border-color: rgb(248 113 113 / 0.25) !important;
+  background: rgb(248 113 113 / 0.08) !important;
+  color: #fecaca !important;
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-maint-switch span {
+  background: var(--sad-border-strong);
+}
+
+html[data-student-theme='dark'] body:has(.student-shell.is-system-admin) .sys-maint-switch input:checked + span {
+  background: #22c55e;
+}
+
+/* ---------- Motion-safe: nothing here animates ---------- */
