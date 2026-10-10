@@ -2,31 +2,57 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   LIBRARY_PROJECTS,
   type LibraryDepartment,
   type LibraryProject,
   type LibraryProjectType,
   PROJECT_TYPE_GROUPS,
+  getDepartmentLabel,
   getProjectIcon
 } from '@/components/library/library-data';
-import { LibraryDepartmentBadge } from '@/components/library/library-primitives';
+import { LibraryModal } from '@/components/library/library-primitives';
 import { LibraryShell } from '@/components/library/library-shell';
 
 const ITEMS_PER_PAGE = 6;
 
-function matchesSearch(project: LibraryProject, search: string) {
-  const query = search.trim().toLowerCase();
+const DEPARTMENTS: Array<{ key: 'all' | LibraryDepartment; label: string; fullTitle: string }> = [
+  { key: 'all', label: 'All Departments', fullTitle: 'All Academic Departments' },
+  { key: 'IT', label: 'IT', fullTitle: 'Information Technology' },
+  { key: 'MET', label: 'MET', fullTitle: 'Manufacturing Engineering Tech' },
+  { key: 'TCM', label: 'TCM', fullTitle: 'Tech Communication Management' },
+  { key: 'ESM', label: 'ESM', fullTitle: 'Engineering & Sustainability' },
+  { key: 'NAME', label: 'NAME', fullTitle: 'Naval Architecture & Marine Eng' }
+];
 
-  if (!query) {
-    return true;
+function getDeptPillClass(dept: LibraryDepartment): string {
+  switch (dept) {
+    case 'IT':
+      return 'is-it';
+    case 'MET':
+      return 'is-met';
+    case 'TCM':
+      return 'is-tcm';
+    case 'ESM':
+      return 'is-esm';
+    case 'NAME':
+      return 'is-name';
+    default:
+      return 'is-it';
   }
+}
+
+function matchesSearch(project: LibraryProject, search: string): boolean {
+  const query = search.trim().toLowerCase();
+  if (!query) return true;
 
   return (
     project.title.toLowerCase().includes(query) ||
     project.authors.join(' ').toLowerCase().includes(query) ||
-    project.keywords.join(' ').toLowerCase().includes(query)
+    project.keywords.join(' ').toLowerCase().includes(query) ||
+    project.adviser.toLowerCase().includes(query) ||
+    project.abstract.toLowerCase().includes(query)
   );
 }
 
@@ -36,30 +62,97 @@ export function LibraryBrowse() {
   const [department, setDepartment] = useState<'all' | LibraryDepartment>('all');
   const [year, setYear] = useState<'all' | string>('all');
   const [projectType, setProjectType] = useState<'all' | LibraryProjectType>('all');
+  const [sortBy, setSortBy] = useState<'views-desc' | 'year-desc' | 'year-asc' | 'title-asc'>('views-desc');
+  const [onlySaved, setOnlySaved] = useState(false);
   const [view, setView] = useState<'card' | 'table'>('card');
   const [currentPage, setCurrentPage] = useState(1);
   const [savedProjectIds, setSavedProjectIds] = useState<number[]>([]);
+  const [previewProject, setPreviewProject] = useState<LibraryProject | null>(null);
+
+  // Initialize and persist saved bookmarks in localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('thesistrack_saved_projects');
+      if (stored) {
+        setSavedProjectIds(JSON.parse(stored));
+      }
+    } catch {
+      // Fallback if localStorage is disabled or restricted
+    }
+  }, []);
+
+  function toggleSaved(projectId: number) {
+    setSavedProjectIds((current) => {
+      const next = current.includes(projectId)
+        ? current.filter((id) => id !== projectId)
+        : [...current, projectId];
+      try {
+        localStorage.setItem('thesistrack_saved_projects', JSON.stringify(next));
+      } catch {
+        // Ignore storage errors
+      }
+      return next;
+    });
+  }
 
   useEffect(() => {
-    setSearch(searchParams.get('search') ?? '');
-    setCurrentPage(1);
+    const query = searchParams.get('search');
+    if (query !== null) {
+      setSearch(query);
+      setCurrentPage(1);
+    }
   }, [searchParams]);
 
-  const filteredProjects = LIBRARY_PROJECTS.filter((project) => {
-    if (department !== 'all' && project.department !== department) {
-      return false;
-    }
+  const availableYears = useMemo(() => {
+    const set = new Set<string>();
+    LIBRARY_PROJECTS.forEach((p) => set.add(String(p.year)));
+    return Array.from(set).sort((a, b) => Number(b) - Number(a));
+  }, []);
 
-    if (year !== 'all' && String(project.year) !== year) {
-      return false;
-    }
+  const departmentCounts = useMemo(() => {
+    return {
+      all: LIBRARY_PROJECTS.length,
+      IT: LIBRARY_PROJECTS.filter((p) => p.department === 'IT').length,
+      MET: LIBRARY_PROJECTS.filter((p) => p.department === 'MET').length,
+      TCM: LIBRARY_PROJECTS.filter((p) => p.department === 'TCM').length,
+      ESM: LIBRARY_PROJECTS.filter((p) => p.department === 'ESM').length,
+      NAME: LIBRARY_PROJECTS.filter((p) => p.department === 'NAME').length
+    };
+  }, []);
 
-    if (projectType !== 'all' && project.type !== projectType) {
-      return false;
-    }
+  // Filtered and sorted list
+  const filteredProjects = useMemo(() => {
+    const list = LIBRARY_PROJECTS.filter((project) => {
+      if (department !== 'all' && project.department !== department) {
+        return false;
+      }
+      if (year !== 'all' && String(project.year) !== year) {
+        return false;
+      }
+      if (projectType !== 'all' && project.type !== projectType) {
+        return false;
+      }
+      if (onlySaved && !savedProjectIds.includes(project.id)) {
+        return false;
+      }
+      return matchesSearch(project, search);
+    });
 
-    return matchesSearch(project, search);
-  });
+    return list.sort((a, b) => {
+      switch (sortBy) {
+        case 'views-desc':
+          return b.views - a.views;
+        case 'year-desc':
+          return b.year - a.year;
+        case 'year-asc':
+          return a.year - b.year;
+        case 'title-asc':
+          return a.title.localeCompare(b.title);
+        default:
+          return 0;
+      }
+    });
+  }, [department, year, projectType, onlySaved, savedProjectIds, search, sortBy]);
 
   const totalPages = Math.max(1, Math.ceil(filteredProjects.length / ITEMS_PER_PAGE));
   const safeCurrentPage = Math.min(currentPage, totalPages);
@@ -74,242 +167,748 @@ export function LibraryBrowse() {
     }
   }, [currentPage, safeCurrentPage]);
 
-  function toggleSaved(projectId: number) {
-    setSavedProjectIds((current) =>
-      current.includes(projectId)
-        ? current.filter((id) => id !== projectId)
-        : [...current, projectId]
-    );
+  const hasActiveFilters =
+    search.trim() !== '' ||
+    department !== 'all' ||
+    year !== 'all' ||
+    projectType !== 'all' ||
+    onlySaved;
+
+  function resetAllFilters() {
+    setSearch('');
+    setDepartment('all');
+    setYear('all');
+    setProjectType('all');
+    setOnlySaved(false);
+    setCurrentPage(1);
   }
 
   return (
     <LibraryShell
       activeNav="browse"
-      title="Browse Repository"
-      description="Search and discover completed research projects"
+      title="Browse Projects"
+      description="Explore accredited capstone and thesis repositories across all academic departments"
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      <div className="library-browse-container">
         
-        {/* Modern Filter Bar */}
-        <section style={{ background: 'white', borderRadius: '1.2rem', padding: '1.5rem', boxShadow: '0 10px 25px rgba(0, 58, 143, 0.05)', display: 'flex', flexDirection: 'column', gap: '1.5rem', border: '1px solid #F1F5F9' }}>
-          
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-end' }}>
+        {/* Top Hero / Summary Banner */}
+        <div className="library-browse-hero">
+          <div className="library-browse-hero-text">
+            <h1>
+              <i className="fas fa-compass" style={{ color: '#003A8F' }} aria-hidden="true" />
+              Research Repository Catalog
+            </h1>
+            <p>
+              Discover {LIBRARY_PROJECTS.length} peer-reviewed undergraduate theses, machine prototypes, and IoT deployments.
+            </p>
+          </div>
+          <div className="library-browse-hero-stats">
+            <span className="library-browse-stat-pill is-primary">
+              <i className="fas fa-layer-group" aria-hidden="true" />
+              {filteredProjects.length} {filteredProjects.length === 1 ? 'Project' : 'Projects'} Found
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                setOnlySaved((prev) => !prev);
+                setCurrentPage(1);
+              }}
+              className={`library-browse-stat-pill is-saved ${onlySaved ? 'is-active' : ''}`}
+              style={{ cursor: 'pointer', border: '1px solid #FDE68A' }}
+              title="Filter by your saved bookmarks"
+            >
+              <i className={onlySaved ? 'fas fa-bookmark' : 'far fa-bookmark'} aria-hidden="true" />
+              {savedProjectIds.length} Bookmarked {onlySaved ? '(Active)' : ''}
+            </button>
+          </div>
+        </div>
+
+        {/* Quick Department Filter Tabs */}
+        <div className="library-dept-tabs-bar" role="tablist" aria-label="Department filter tabs">
+          {DEPARTMENTS.map((dept) => {
+            const isActive = department === dept.key;
+            const count = departmentCounts[dept.key];
+            return (
+              <button
+                key={dept.key}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                className={`library-dept-tab-btn ${isActive ? 'is-active' : ''}`}
+                onClick={() => {
+                  setDepartment(dept.key);
+                  setCurrentPage(1);
+                }}
+                title={dept.fullTitle}
+              >
+                <span>{dept.label}</span>
+                <span className="library-dept-tab-count">{count}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Search & Filter Toolbar */}
+        <div className="library-browse-controls-card">
+          <div className="library-browse-controls-row">
             
-            <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label htmlFor="library-search" style={{ fontSize: '0.85rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Search</label>
-              <div style={{ position: 'relative' }}>
-                <i className="fas fa-search" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }}></i>
-                <input
-                  id="library-search"
-                  placeholder="Title, author, or keyword..."
-                  type="text"
-                  value={search}
-                  onChange={(event) => {
-                    setSearch(event.target.value);
+            {/* Search Input */}
+            <div className="library-browse-search-wrapper">
+              <i className="fas fa-search library-browse-search-icon" aria-hidden="true" />
+              <input
+                id="library-search"
+                type="text"
+                placeholder="Search by title, author, keyword, or adviser..."
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="library-browse-search-field"
+                aria-label="Search research projects"
+              />
+              {search && (
+                <button
+                  type="button"
+                  className="library-browse-search-clear"
+                  onClick={() => {
+                    setSearch('');
                     setCurrentPage(1);
                   }}
-                  style={{ width: '100%', padding: '0.8rem 1rem 0.8rem 2.5rem', borderRadius: '0.6rem', border: '1px solid #E2E8F0', background: '#F8FAFC', outline: 'none', color: '#0F172A', fontSize: '0.95rem' }}
-                />
+                  aria-label="Clear search"
+                  title="Clear search"
+                >
+                  <i className="fas fa-times" aria-hidden="true" />
+                </button>
+              )}
+            </div>
+
+            {/* Filter Selects Group */}
+            <div className="library-browse-filter-select-group">
+              
+              {/* Department Dropdown (Synchronized with tabs) */}
+              <div className="library-browse-select-wrap">
+                <i className="fas fa-building-columns library-browse-select-icon" aria-hidden="true" />
+                <select
+                  id="library-department"
+                  value={department}
+                  onChange={(e) => {
+                    setDepartment(e.target.value as 'all' | LibraryDepartment);
+                    setCurrentPage(1);
+                  }}
+                  className="library-browse-select"
+                  aria-label="Filter by department"
+                >
+                  <option value="all">All Departments</option>
+                  <option value="IT">IT - Information Technology</option>
+                  <option value="MET">MET - Manufacturing Engineering Tech</option>
+                  <option value="TCM">TCM - Tech Communication Management</option>
+                  <option value="ESM">ESM - Engineering & Sustainability</option>
+                  <option value="NAME">NAME - Naval Architecture & Marine Eng</option>
+                </select>
+                <i className="fas fa-chevron-down library-browse-select-caret" aria-hidden="true" />
               </div>
+
+              {/* Year Dropdown */}
+              <div className="library-browse-select-wrap">
+                <i className="fas fa-calendar-alt library-browse-select-icon" aria-hidden="true" />
+                <select
+                  id="library-year"
+                  value={year}
+                  onChange={(e) => {
+                    setYear(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="library-browse-select"
+                  aria-label="Filter by publication year"
+                >
+                  <option value="all">All Years</option>
+                  {availableYears.map((y) => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                  ))}
+                </select>
+                <i className="fas fa-chevron-down library-browse-select-caret" aria-hidden="true" />
+              </div>
+
+              {/* Project Type Dropdown */}
+              <div className="library-browse-select-wrap">
+                <i className="fas fa-shapes library-browse-select-icon" aria-hidden="true" />
+                <select
+                  id="library-type"
+                  value={projectType}
+                  onChange={(e) => {
+                    setProjectType(e.target.value as 'all' | LibraryProjectType);
+                    setCurrentPage(1);
+                  }}
+                  className="library-browse-select"
+                  aria-label="Filter by project type"
+                >
+                  <option value="all">All Project Types</option>
+                  {PROJECT_TYPE_GROUPS.map((group) => (
+                    <optgroup key={group.label} label={group.label}>
+                      {group.types.map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+                <i className="fas fa-chevron-down library-browse-select-caret" aria-hidden="true" />
+              </div>
+
+              {/* Sort By Dropdown */}
+              <div className="library-browse-select-wrap">
+                <i className="fas fa-arrow-down-wide-short library-browse-select-icon" aria-hidden="true" />
+                <select
+                  id="library-sort"
+                  value={sortBy}
+                  onChange={(e) => {
+                    setSortBy(e.target.value as typeof sortBy);
+                    setCurrentPage(1);
+                  }}
+                  className="library-browse-select"
+                  aria-label="Sort projects"
+                >
+                  <option value="views-desc">Most Viewed</option>
+                  <option value="year-desc">Newest Year</option>
+                  <option value="year-asc">Oldest Year</option>
+                  <option value="title-asc">Title (A – Z)</option>
+                </select>
+                <i className="fas fa-chevron-down library-browse-select-caret" aria-hidden="true" />
+              </div>
+
             </div>
 
-            <div style={{ flex: '1 1 150px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label htmlFor="library-department" style={{ fontSize: '0.85rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Department</label>
-              <select
-                id="library-department"
-                value={department}
-                onChange={(event) => {
-                  setDepartment(event.target.value as 'all' | LibraryDepartment);
-                  setCurrentPage(1);
-                }}
-                style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '0.6rem', border: '1px solid #E2E8F0', background: '#F8FAFC', outline: 'none', color: '#0F172A', fontSize: '0.95rem', appearance: 'none', cursor: 'pointer' }}
-              >
-                <option value="all">All Departments</option>
-                <option value="IT">IT</option>
-                <option value="MET">MET</option>
-                <option value="TCM">TCM</option>
-                <option value="ESM">ESM</option>
-                <option value="NAME">NAME</option>
-              </select>
-            </div>
+            {/* Saved Only Toggle */}
+            <button
+              type="button"
+              className={`library-browse-saved-toggle ${onlySaved ? 'is-active' : ''}`}
+              onClick={() => {
+                setOnlySaved((prev) => !prev);
+                setCurrentPage(1);
+              }}
+              title="Show only bookmarked projects"
+            >
+              <i className={onlySaved ? 'fas fa-bookmark' : 'far fa-bookmark'} aria-hidden="true" />
+              <span>Saved Only</span>
+            </button>
 
-            <div style={{ flex: '1 1 120px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label htmlFor="library-year" style={{ fontSize: '0.85rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Year</label>
-              <select
-                id="library-year"
-                value={year}
-                onChange={(event) => {
-                  setYear(event.target.value);
-                  setCurrentPage(1);
-                }}
-                style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '0.6rem', border: '1px solid #E2E8F0', background: '#F8FAFC', outline: 'none', color: '#0F172A', fontSize: '0.95rem', appearance: 'none', cursor: 'pointer' }}
-              >
-                <option value="all">All Years</option>
-                <option value="2024">2024</option>
-                <option value="2023">2023</option>
-                <option value="2022">2022</option>
-              </select>
-            </div>
-
-            <div style={{ flex: '1 1 180px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label htmlFor="library-type" style={{ fontSize: '0.85rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Type</label>
-              <select
-                id="library-type"
-                value={projectType}
-                onChange={(event) => {
-                  setProjectType(event.target.value as 'all' | LibraryProjectType);
-                  setCurrentPage(1);
-                }}
-                style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '0.6rem', border: '1px solid #E2E8F0', background: '#F8FAFC', outline: 'none', color: '#0F172A', fontSize: '0.95rem', appearance: 'none', cursor: 'pointer' }}
-              >
-                <option value="all">All Types</option>
-                {PROJECT_TYPE_GROUPS.map((group) => (
-                  <optgroup key={group.label} label={group.label}>
-                    {group.types.map((type) => <option key={type} value={type}>{type}</option>)}
-                  </optgroup>
-                ))}
-              </select>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#F1F5F9', padding: '0.4rem', borderRadius: '0.8rem' }}>
+            {/* View Mode Toggle (Grid / Table) */}
+            <div className="library-browse-view-switch" role="group" aria-label="View layout switch">
               <button
                 type="button"
+                className={`library-browse-view-btn ${view === 'card' ? 'is-active' : ''}`}
                 onClick={() => setView('card')}
-                style={{ padding: '0.4rem 1rem', borderRadius: '0.5rem', border: 'none', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s', background: view === 'card' ? 'white' : 'transparent', color: view === 'card' ? '#003A8F' : '#64748B', boxShadow: view === 'card' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                aria-pressed={view === 'card'}
               >
-                <i className="fas fa-th-large" aria-hidden="true" /> Card
+                <i className="fas fa-th-large" aria-hidden="true" />
+                <span>Grid</span>
               </button>
               <button
                 type="button"
+                className={`library-browse-view-btn ${view === 'table' ? 'is-active' : ''}`}
                 onClick={() => setView('table')}
-                style={{ padding: '0.4rem 1rem', borderRadius: '0.5rem', border: 'none', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s', background: view === 'table' ? 'white' : 'transparent', color: view === 'table' ? '#003A8F' : '#64748B', boxShadow: view === 'table' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                aria-pressed={view === 'table'}
               >
-                <i className="fas fa-list" aria-hidden="true" /> Table
+                <i className="fas fa-table-list" aria-hidden="true" />
+                <span>Table</span>
               </button>
             </div>
-            
-          </div>
-        </section>
 
-        {/* Results */}
-        {!filteredProjects.length ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '5rem 2rem', background: 'white', borderRadius: '1.2rem', border: '1px dashed #CBD5E1', textAlign: 'center', gap: '1rem' }}>
-            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#F8FAFC', color: '#94A3B8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem' }}>
-              <i className="fas fa-search" aria-hidden="true" />
-            </div>
-            <div>
-              <strong style={{ fontSize: '1.2rem', color: '#0F172A', display: 'block', marginBottom: '0.3rem' }}>No projects found</strong>
-              <p style={{ margin: 0, color: '#64748B' }}>Try adjusting your search or filters to find what you're looking for.</p>
-            </div>
           </div>
+
+          {/* Active Filter Chips Bar */}
+          {hasActiveFilters && (
+            <div className="library-active-chips-bar">
+              <span className="library-active-chips-label">Active Filters:</span>
+              
+              {search.trim() && (
+                <span className="library-active-chip">
+                  Search: &ldquo;{search}&rdquo;
+                  <button type="button" onClick={() => setSearch('')} aria-label="Remove search filter">
+                    <i className="fas fa-times" aria-hidden="true" />
+                  </button>
+                </span>
+              )}
+
+              {department !== 'all' && (
+                <span className="library-active-chip">
+                  Dept: {department}
+                  <button type="button" onClick={() => setDepartment('all')} aria-label="Remove department filter">
+                    <i className="fas fa-times" aria-hidden="true" />
+                  </button>
+                </span>
+              )}
+
+              {year !== 'all' && (
+                <span className="library-active-chip">
+                  Year: {year}
+                  <button type="button" onClick={() => setYear('all')} aria-label="Remove year filter">
+                    <i className="fas fa-times" aria-hidden="true" />
+                  </button>
+                </span>
+              )}
+
+              {projectType !== 'all' && (
+                <span className="library-active-chip">
+                  Type: {projectType}
+                  <button type="button" onClick={() => setProjectType('all')} aria-label="Remove project type filter">
+                    <i className="fas fa-times" aria-hidden="true" />
+                  </button>
+                </span>
+              )}
+
+              {onlySaved && (
+                <span className="library-active-chip">
+                  Bookmarks Only
+                  <button type="button" onClick={() => setOnlySaved(false)} aria-label="Remove saved filter">
+                    <i className="fas fa-times" aria-hidden="true" />
+                  </button>
+                </span>
+              )}
+
+              <button
+                type="button"
+                onClick={resetAllFilters}
+                className="library-active-chip-clear-all"
+              >
+                <i className="fas fa-rotate-left" style={{ marginRight: '0.3rem' }} aria-hidden="true" />
+                Reset All Filters
+              </button>
+            </div>
+          )}
+
+        </div>
+
+        {/* Content Section */}
+        {filteredProjects.length === 0 ? (
+          
+          /* Empty State */
+          <div className="library-browse-empty-state">
+            <div className="library-browse-empty-icon">
+              <i className="fas fa-folder-open" aria-hidden="true" />
+            </div>
+            <h3 className="library-browse-empty-title">No matching projects found</h3>
+            <p className="library-browse-empty-subtitle">
+              We couldn&apos;t find any research studies matching your active filters. Try refining your keywords or clearing current filters.
+            </p>
+            <button
+              type="button"
+              onClick={resetAllFilters}
+              className="library-browse-empty-reset-btn"
+            >
+              <i className="fas fa-rotate-left" aria-hidden="true" />
+              Reset All Filters
+            </button>
+          </div>
+
         ) : view === 'card' ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
+
+          /* Card Grid View */
+          <div className="library-browse-grid">
             {paginatedProjects.map((project) => {
               const isSaved = savedProjectIds.includes(project.id);
+              const deptPillClass = getDeptPillClass(project.department);
+
               return (
-                <article key={project.id} style={{ background: 'white', borderRadius: '1.2rem', padding: '1.5rem', border: '1px solid #F1F5F9', boxShadow: '0 10px 25px rgba(0, 58, 143, 0.03)', display: 'flex', flexDirection: 'column', gap: '1rem', transition: 'all 0.2s', position: 'relative' }} onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 15px 35px rgba(0, 58, 143, 0.08)' }} onMouseOut={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 10px 25px rgba(0, 58, 143, 0.03)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#EFF6FF', color: '#003A8F', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>
-                      <i className={`fas ${getProjectIcon(project.type)}`} aria-hidden="true" />
+                <article key={project.id} className="library-browse-card">
+                  
+                  {/* Card Header */}
+                  <div className="library-browse-card-header">
+                    <div className="library-browse-card-badges">
+                      <span className={`library-dept-pill ${deptPillClass}`} title={getDepartmentLabel(project.department)}>
+                        {project.department}
+                      </span>
+                      <span className="library-browse-type-badge">
+                        <i className={`fas ${getProjectIcon(project.type)}`} aria-hidden="true" />
+                        {project.type}
+                      </span>
                     </div>
+
                     <button
-                      aria-label={isSaved ? 'Remove from saved projects' : 'Save project'}
-                      onClick={(e) => { e.preventDefault(); toggleSaved(project.id); }}
-                      style={{ background: isSaved ? '#FEF3C7' : 'white', color: isSaved ? '#D97706' : '#94A3B8', border: '1px solid', borderColor: isSaved ? '#FDE68A' : '#E2E8F0', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
-                      title={isSaved ? 'Saved' : 'Save'}
+                      type="button"
+                      aria-label={isSaved ? 'Remove from saved bookmarks' : 'Bookmark project'}
+                      className={`library-browse-bookmark-btn ${isSaved ? 'is-saved' : ''}`}
+                      onClick={() => toggleSaved(project.id)}
+                      title={isSaved ? 'Bookmarked' : 'Add to bookmarks'}
                     >
-                      <i className="fas fa-bookmark" aria-hidden="true" />
+                      <i className={isSaved ? 'fas fa-bookmark' : 'far fa-bookmark'} aria-hidden="true" />
                     </button>
                   </div>
-                  <div>
-                    <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.15rem', fontWeight: 800, color: '#0F172A', lineHeight: 1.4 }}>{project.title}</h3>
-                    <span style={{ display: 'inline-block', background: '#F8FAFC', color: '#003A8F', padding: '0.2rem 0.6rem', borderRadius: '0.4rem', fontSize: '0.75rem', fontWeight: 700, border: '1px solid #E2E8F0', marginBottom: '0.5rem' }}>{project.department}</span>
-                    <p style={{ margin: 0, color: '#475569', fontSize: '0.9rem', lineHeight: 1.5 }}><strong>Authors:</strong> {project.authors.join(', ')}</p>
-                  </div>
-                  <div style={{ background: '#F8FAFC', borderRadius: '0.8rem', padding: '0.8rem', marginTop: 'auto' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#64748B', marginBottom: '0.3rem' }}>
-                      <span>Adviser: {project.adviser}</span>
-                      <strong>{project.year}</strong>
+
+                  {/* Card Body */}
+                  <div className="library-browse-card-body">
+                    <h2 className="library-browse-card-title">
+                      <Link
+                        href={`/library/project-details?id=${project.id}`}
+                        style={{ color: 'inherit', textDecoration: 'none' }}
+                      >
+                        {project.title}
+                      </Link>
+                    </h2>
+
+                    <p className="library-browse-card-abstract">
+                      {project.abstract}
+                    </p>
+
+                    <div className="library-browse-card-meta">
+                      <div className="library-browse-card-meta-row">
+                        <span className="library-browse-card-meta-item" title={project.authors.join(', ')}>
+                          <i className="fas fa-users" aria-hidden="true" />
+                          <span>{project.authors.join(', ')}</span>
+                        </span>
+                        <span className="library-browse-card-views" title="Total verified reads">
+                          <i className="fas fa-eye" aria-hidden="true" />
+                          {project.views.toLocaleString()} views
+                        </span>
+                      </div>
+                      <div className="library-browse-card-meta-row">
+                        <span className="library-browse-card-meta-item" title={`Adviser: ${project.adviser}`}>
+                          <i className="fas fa-user-tie" aria-hidden="true" />
+                          <span>Adviser: {project.adviser}</span>
+                        </span>
+                        <span className="library-browse-card-meta-item">
+                          <i className="fas fa-calendar" aria-hidden="true" />
+                          <span>{project.year}</span>
+                        </span>
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#64748B' }}>
-                      <span>Type: {project.type}</span>
+
+                    {/* Keywords tags */}
+                    <div className="library-browse-card-tags">
+                      {project.keywords.slice(0, 3).map((kw) => (
+                        <button
+                          key={kw}
+                          type="button"
+                          className="library-browse-tag-pill"
+                          onClick={() => {
+                            setSearch(kw);
+                            setCurrentPage(1);
+                          }}
+                          title={`Search for "${kw}"`}
+                        >
+                          #{kw}
+                        </button>
+                      ))}
+                      {project.keywords.length > 3 && (
+                        <span className="library-browse-tag-pill" style={{ opacity: 0.7 }}>
+                          +{project.keywords.length - 3} more
+                        </span>
+                      )}
                     </div>
                   </div>
-                  <Link href={`/library/project-details?id=${project.id}`} style={{ textDecoration: 'none', background: 'white', color: '#003A8F', padding: '0.6rem', borderRadius: '0.6rem', border: '1px solid #003A8F', textAlign: 'center', fontWeight: 600, fontSize: '0.9rem', transition: 'all 0.2s' }} onMouseOver={(e) => { e.currentTarget.style.background = '#003A8F'; e.currentTarget.style.color = 'white' }} onMouseOut={(e) => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#003A8F' }}>
-                    View Details
-                  </Link>
+
+                  {/* Card Actions */}
+                  <div className="library-browse-card-actions">
+                    <button
+                      type="button"
+                      className="library-browse-quick-btn"
+                      onClick={() => setPreviewProject(project)}
+                      title="Quick summary preview"
+                    >
+                      <i className="fas fa-eye" aria-hidden="true" />
+                      <span>Preview</span>
+                    </button>
+                    <Link
+                      href={`/library/project-details?id=${project.id}`}
+                      className="library-browse-details-btn"
+                    >
+                      <span>View Project</span>
+                      <i className="fas fa-arrow-right" aria-hidden="true" />
+                    </Link>
+                  </div>
+
                 </article>
               );
             })}
           </div>
+
         ) : (
-          <div style={{ background: 'white', borderRadius: '1.2rem', boxShadow: '0 10px 25px rgba(0, 58, 143, 0.05)', overflow: 'hidden', border: '1px solid #F1F5F9' }}>
-            <div className="table-scroll" style={{ padding: '0 1rem' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '900px' }}>
+
+          /* Table List View */
+          <div className="library-browse-table-wrapper">
+            <div className="table-scroll">
+              <table className="library-browse-table">
                 <thead>
-                  <tr style={{ borderBottom: '2px solid #E2E8F0', color: '#64748B', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    <th style={{ padding: '1.2rem 1rem', fontWeight: 700 }}>Title</th>
-                    <th style={{ padding: '1.2rem 1rem', fontWeight: 700 }}>Authors</th>
-                    <th style={{ padding: '1.2rem 1rem', fontWeight: 700 }}>Dept</th>
-                    <th style={{ padding: '1.2rem 1rem', fontWeight: 700 }}>Year</th>
-                    <th style={{ padding: '1.2rem 1rem', fontWeight: 700 }}>Adviser</th>
-                    <th style={{ padding: '1.2rem 1rem', fontWeight: 700, textAlign: 'right' }}>Actions</th>
+                  <tr>
+                    <th>Title & Abstract</th>
+                    <th>Dept</th>
+                    <th>Type</th>
+                    <th>Authors</th>
+                    <th>Adviser</th>
+                    <th>Year</th>
+                    <th>Views</th>
+                    <th style={{ textAlign: 'right' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedProjects.map((project, i) => (
-                    <tr key={project.id} style={{ borderBottom: i === paginatedProjects.length - 1 ? 'none' : '1px solid #F1F5F9', transition: 'background 0.2s', cursor: 'pointer' }} onMouseOver={(e) => e.currentTarget.style.background = '#F8FAFC'} onMouseOut={(e) => e.currentTarget.style.background = 'transparent'} onClick={() => window.location.href = `/library/project-details?id=${project.id}`}>
-                      <td style={{ padding: '1.2rem 1rem', color: '#0F172A', fontWeight: 700, maxWidth: '250px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{project.title}</td>
-                      <td style={{ padding: '1.2rem 1rem', color: '#475569', fontSize: '0.9rem', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{project.authors.join(', ')}</td>
-                      <td style={{ padding: '1.2rem 1rem' }}>
-                        <span style={{ background: '#EFF6FF', color: '#003A8F', padding: '0.3rem 0.6rem', borderRadius: '0.4rem', fontSize: '0.75rem', fontWeight: 700, border: '1px solid #BFDBFE' }}>{project.department}</span>
-                      </td>
-                      <td style={{ padding: '1.2rem 1rem', color: '#64748B', fontWeight: 600 }}>{project.year}</td>
-                      <td style={{ padding: '1.2rem 1rem', color: '#64748B', fontSize: '0.9rem' }}>{project.adviser}</td>
-                      <td style={{ padding: '1.2rem 1rem', textAlign: 'right' }}>
-                        <Link href={`/library/project-details?id=${project.id}`} onClick={(e) => e.stopPropagation()} style={{ textDecoration: 'none', background: 'white', color: '#003A8F', padding: '0.4rem 0.8rem', borderRadius: '0.4rem', border: '1px solid #003A8F', fontSize: '0.85rem', fontWeight: 600, transition: 'all 0.2s' }} onMouseOver={(e) => { e.currentTarget.style.background = '#003A8F'; e.currentTarget.style.color = 'white' }} onMouseOut={(e) => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#003A8F' }}>
-                          View
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
+                  {paginatedProjects.map((project) => {
+                    const isSaved = savedProjectIds.includes(project.id);
+                    const deptPillClass = getDeptPillClass(project.department);
+
+                    return (
+                      <tr key={project.id}>
+                        <td style={{ maxWidth: '340px' }}>
+                          <Link
+                            href={`/library/project-details?id=${project.id}`}
+                            style={{ textDecoration: 'none' }}
+                          >
+                            <div className="library-browse-table-title">{project.title}</div>
+                            <div className="library-browse-table-abstract">{project.abstract}</div>
+                          </Link>
+                        </td>
+                        <td>
+                          <span className={`library-dept-pill ${deptPillClass}`}>
+                            {project.department}
+                          </span>
+                        </td>
+                        <td>
+                          <span className="library-browse-type-badge">
+                            <i className={`fas ${getProjectIcon(project.type)}`} aria-hidden="true" />
+                            {project.type}
+                          </span>
+                        </td>
+                        <td style={{ maxWidth: '180px', color: '#475569', fontSize: '0.85rem' }}>
+                          {project.authors.join(', ')}
+                        </td>
+                        <td style={{ color: '#475569', fontSize: '0.85rem' }}>
+                          {project.adviser}
+                        </td>
+                        <td style={{ fontWeight: 700, color: '#334155' }}>
+                          {project.year}
+                        </td>
+                        <td>
+                          <span className="library-browse-card-views">
+                            <i className="fas fa-eye" aria-hidden="true" />
+                            {project.views.toLocaleString()}
+                          </span>
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                            <button
+                              type="button"
+                              className={`library-browse-bookmark-btn ${isSaved ? 'is-saved' : ''}`}
+                              style={{ width: '2rem', height: '2rem', fontSize: '0.8rem' }}
+                              onClick={() => toggleSaved(project.id)}
+                              title={isSaved ? 'Bookmarked' : 'Add bookmark'}
+                            >
+                              <i className={isSaved ? 'fas fa-bookmark' : 'far fa-bookmark'} aria-hidden="true" />
+                            </button>
+                            <button
+                              type="button"
+                              className="library-browse-quick-btn"
+                              style={{ padding: '0.4rem 0.65rem', fontSize: '0.78rem' }}
+                              onClick={() => setPreviewProject(project)}
+                              title="Quick Preview"
+                            >
+                              Preview
+                            </button>
+                            <Link
+                              href={`/library/project-details?id=${project.id}`}
+                              className="library-browse-details-btn"
+                              style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem' }}
+                            >
+                              Details
+                            </Link>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           </div>
+
         )}
 
-        {/* Pagination */}
+        {/* Pagination Section */}
         {filteredProjects.length > 0 && (
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginTop: '1rem' }}>
-            <button
-              disabled={safeCurrentPage === 1}
-              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-              style={{ background: 'white', border: '1px solid #E2E8F0', padding: '0.5rem 1rem', borderRadius: '0.5rem', color: safeCurrentPage === 1 ? '#94A3B8' : '#0F172A', fontWeight: 600, cursor: safeCurrentPage === 1 ? 'not-allowed' : 'pointer', opacity: safeCurrentPage === 1 ? 0.6 : 1 }}
-            >
-              Prev
-            </button>
-            <div style={{ display: 'flex', gap: '0.3rem' }}>
-              {Array.from({ length: totalPages }, (_, index) => index + 1).map((pageNumber) => (
+          <div className="library-browse-pagination-bar">
+            <span className="library-browse-pagination-info">
+              Showing{' '}
+              <strong>
+                {(safeCurrentPage - 1) * ITEMS_PER_PAGE + 1} -{' '}
+                {Math.min(safeCurrentPage * ITEMS_PER_PAGE, filteredProjects.length)}
+              </strong>{' '}
+              of <strong>{filteredProjects.length}</strong> projects
+            </span>
+
+            <div className="library-browse-pagination-pages">
+              <button
+                type="button"
+                disabled={safeCurrentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className="library-browse-page-nav-btn"
+                aria-label="Previous page"
+              >
+                <i className="fas fa-chevron-left" aria-hidden="true" />
+                <span>Prev</span>
+              </button>
+
+              {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNum) => (
                 <button
-                  key={pageNumber}
-                  onClick={() => setCurrentPage(pageNumber)}
-                  style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '0.5rem', border: pageNumber === safeCurrentPage ? 'none' : '1px solid #E2E8F0', background: pageNumber === safeCurrentPage ? '#003A8F' : 'white', color: pageNumber === safeCurrentPage ? 'white' : '#475569', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}
+                  key={pageNum}
+                  type="button"
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`library-browse-page-num-btn ${pageNum === safeCurrentPage ? 'is-active' : ''}`}
+                  aria-current={pageNum === safeCurrentPage ? 'page' : undefined}
                 >
-                  {pageNumber}
+                  {pageNum}
                 </button>
               ))}
+
+              <button
+                type="button"
+                disabled={safeCurrentPage === totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                className="library-browse-page-nav-btn"
+                aria-label="Next page"
+              >
+                <span>Next</span>
+                <i className="fas fa-chevron-right" aria-hidden="true" />
+              </button>
             </div>
-            <button
-              disabled={safeCurrentPage === totalPages}
-              onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-              style={{ background: 'white', border: '1px solid #E2E8F0', padding: '0.5rem 1rem', borderRadius: '0.5rem', color: safeCurrentPage === totalPages ? '#94A3B8' : '#0F172A', fontWeight: 600, cursor: safeCurrentPage === totalPages ? 'not-allowed' : 'pointer', opacity: safeCurrentPage === totalPages ? 0.6 : 1 }}
-            >
-              Next
-            </button>
           </div>
         )}
+
       </div>
+
+      {/* Quick Preview Modal */}
+      {previewProject && (
+        <LibraryModal
+          open={Boolean(previewProject)}
+          title="Project Quick Overview"
+          onClose={() => setPreviewProject(null)}
+          maxWidth={760}
+          footer={
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+              <button
+                type="button"
+                className={`library-browse-bookmark-btn ${savedProjectIds.includes(previewProject.id) ? 'is-saved' : ''}`}
+                onClick={() => toggleSaved(previewProject.id)}
+                title="Bookmark project"
+              >
+                <i className={savedProjectIds.includes(previewProject.id) ? 'fas fa-bookmark' : 'far fa-bookmark'} aria-hidden="true" />
+              </button>
+              <div style={{ display: 'flex', gap: '0.6rem' }}>
+                <button
+                  type="button"
+                  className="library-browse-quick-btn"
+                  onClick={() => setPreviewProject(null)}
+                >
+                  Close
+                </button>
+                <Link
+                  href={`/library/project-details?id=${previewProject.id}`}
+                  className="library-browse-details-btn"
+                >
+                  <span>Open Full Project Page</span>
+                  <i className="fas fa-arrow-right" aria-hidden="true" />
+                </Link>
+              </div>
+            </div>
+          }
+        >
+          <div className="library-preview-modal-body">
+            
+            <div className="library-preview-modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                <span className={`library-dept-pill ${getDeptPillClass(previewProject.department)}`}>
+                  {previewProject.department} - {getDepartmentLabel(previewProject.department)}
+                </span>
+                <span className="library-browse-type-badge">
+                  <i className={`fas ${getProjectIcon(previewProject.type)}`} aria-hidden="true" />
+                  {previewProject.type}
+                </span>
+                <span style={{ marginLeft: 'auto', fontSize: '0.85rem', color: '#003A8F', fontWeight: 700 }}>
+                  <i className="fas fa-eye" style={{ marginRight: '0.3rem' }} aria-hidden="true" />
+                  {previewProject.views.toLocaleString()} views
+                </span>
+              </div>
+              <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#0F172A', lineHeight: 1.4 }}>
+                {previewProject.title}
+              </h2>
+            </div>
+
+            <div className="library-preview-meta-grid">
+              <div className="library-preview-meta-cell">
+                <span>Authors</span>
+                <strong>{previewProject.authors.join(', ')}</strong>
+              </div>
+              <div className="library-preview-meta-cell">
+                <span>Adviser</span>
+                <strong>{previewProject.adviser}</strong>
+              </div>
+              <div className="library-preview-meta-cell">
+                <span>Academic Year</span>
+                <strong>{previewProject.year}</strong>
+              </div>
+              <div className="library-preview-meta-cell">
+                <span>Status</span>
+                <strong style={{ color: '#16A34A' }}>
+                  {previewProject.statusLabel ?? 'Approved & Cataloged'}
+                </strong>
+              </div>
+            </div>
+
+            <div>
+              <h4 style={{ margin: '0 0 0.4rem 0', fontSize: '0.85rem', textTransform: 'uppercase', color: '#64748B', fontWeight: 700 }}>
+                Abstract
+              </h4>
+              <div className="library-preview-abstract-box">
+                {previewProject.abstract}
+              </div>
+            </div>
+
+            {previewProject.keywords?.length > 0 && (
+              <div>
+                <h4 style={{ margin: '0 0 0.4rem 0', fontSize: '0.85rem', textTransform: 'uppercase', color: '#64748B', fontWeight: 700 }}>
+                  Keywords & Classification
+                </h4>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                  {previewProject.keywords.map((kw) => (
+                    <span key={kw} className="library-browse-tag-pill" style={{ padding: '0.3rem 0.65rem', fontSize: '0.78rem' }}>
+                      #{kw}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {previewProject.technologies && previewProject.technologies.length > 0 && (
+              <div>
+                <h4 style={{ margin: '0 0 0.4rem 0', fontSize: '0.85rem', textTransform: 'uppercase', color: '#64748B', fontWeight: 700 }}>
+                  Technologies & Materials
+                </h4>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                  {previewProject.technologies.map((tech) => (
+                    <span
+                      key={tech}
+                      style={{
+                        padding: '0.25rem 0.6rem',
+                        borderRadius: '0.4rem',
+                        background: '#EFF6FF',
+                        color: '#003A8F',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        border: '1px solid #BFDBFE'
+                      }}
+                    >
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+          </div>
+        </LibraryModal>
+      )}
+
     </LibraryShell>
   );
 }
