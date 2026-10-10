@@ -3027,3 +3027,417 @@
   animation: fadeIn 0.3s ease;
 }
 
+/* ==========================================================================
+   Library Views & Comments Modern Styles
+   ========================================================================== */
+
+.library-engagement-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+/* Master-detail split layout */
+.library-engagement-split {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .library-engagement-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Studies list column */
+.library-engagement-list-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.library-engagement-study-item {
+  background: white;
+  border-radius: 1.15rem;
+  padding: 1.25rem;
+  border: 1.5px solid #E2E8F0;
+  box-shadow: 0 4px 16px rgba(0, 58, 143, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.library-engagement-study-item:hover {
+  transform: translateY(-2px);
+  border-color: #BFDBFE;
+  box-shadow: 0 10px 24px rgba(0, 58, 143, 0.08);
+}
+
+.library-engagement-study-item.is-selected {
+  border-color: #003A8F;
+  background: #F8FAFC;
+  box-shadow: 0 0 0 3px rgba(0, 58, 143, 0.12), 0 8px 24px rgba(0, 58, 143, 0.08);
+}
+
+.library-engagement-study-item.is-selected::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 1rem;
+  bottom: 1rem;
+  width: 4px;
+  background: #003A8F;
+  border-radius: 0 4px 4px 0;
+}
+
+.library-engagement-study-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.library-engagement-study-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0F172A;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.library-engagement-study-meta {
+  font-size: 0.8rem;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.library-engagement-study-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.4rem;
+  border-top: 1px dashed #E2E8F0;
+  font-size: 0.8rem;
+}
+
+.library-engagement-comment-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #EFF6FF;
+  color: #003A8F;
+  border: 1px solid #BFDBFE;
+}
+
+.library-engagement-comment-pill.has-none {
+  background: #F1F5F9;
+  color: #64748B;
+  border-color: #E2E8F0;
+}
+
+/* Detail & Comments Hub Panel */
+.library-engagement-hub-panel {
+  background: white;
+  border-radius: 1.25rem;
+  padding: 1.75rem;
+  border: 1.5px solid #E2E8F0;
+  box-shadow: 0 6px 24px rgba(0, 58, 143, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.library-engagement-hub-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.library-engagement-hub-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0F172A;
+  line-height: 1.35;
+}
+
+.library-engagement-views-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.75rem;
+}
+
+.library-engagement-view-box {
+  background: #F8FAFC;
+  border-radius: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #E2E8F0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.library-engagement-view-box span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.library-engagement-view-box strong {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0F172A;
+}
+
+/* Comments Thread Section */
+.library-comments-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.library-comments-thread-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.library-comments-thread-head h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0F172A;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.library-comments-thread-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.library-comment-card {
+  background: #F8FAFC;
+  border-radius: 1rem;
+  padding: 1.15rem 1.25rem;
+  border: 1px solid #E2E8F0;
+  display: flex;
+  gap: 0.9rem;
+  transition: all 0.2s;
+}
+
+.library-comment-card:hover {
+  background: white;
+  border-color: #CBD5E1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.library-comment-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: white;
+  flex-shrink: 0;
+}
+
+.library-comment-avatar.is-librarian {
+  background: linear-gradient(135deg, #003A8F, #1E40AF);
+}
+
+.library-comment-avatar.is-adviser {
+  background: linear-gradient(135deg, #7E22CE, #9333EA);
+}
+
+.library-comment-avatar.is-panel {
+  background: linear-gradient(135deg, #047857, #059669);
+}
+
+.library-comment-avatar.is-student {
+  background: linear-gradient(135deg, #D97706, #F59E0B);
+}
+
+.library-comment-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.library-comment-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.library-comment-author-name {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #0F172A;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.library-comment-role-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.library-comment-role-badge.is-librarian {
+  background: #EFF6FF;
+  color: #003A8F;
+  border: 1px solid #BFDBFE;
+}
+
+.library-comment-role-badge.is-adviser {
+  background: #FAF5FF;
+  color: #7E22CE;
+  border: 1px solid #E9D5FF;
+}
+
+.library-comment-role-badge.is-panel {
+  background: #ECFDF5;
+  color: #047857;
+  border: 1px solid #A7F3D0;
+}
+
+.library-comment-role-badge.is-student {
+  background: #FEF3C7;
+  color: #B45309;
+  border: 1px solid #FDE68A;
+}
+
+.library-comment-text {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #334155;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.library-comment-delete-btn {
+  background: transparent;
+  border: none;
+  color: #94A3B8;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s;
+  padding: 0;
+}
+
+.library-comment-delete-btn:hover {
+  color: #DC2626;
+}
+
+/* Post new comment box */
+.library-comment-composer {
+  background: #F8FAFC;
+  border-radius: 1rem;
+  padding: 1.15rem;
+  border: 1.5px solid #E2E8F0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.library-comment-composer textarea {
+  width: 100%;
+  min-height: 85px;
+  padding: 0.85rem;
+  border-radius: 0.65rem;
+  border: 1.5px solid #E2E8F0;
+  background: white;
+  font-size: 0.88rem;
+  color: #0F172A;
+  outline: none;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.5;
+  transition: all 0.2s ease;
+}
+
+.library-comment-composer textarea:focus {
+  border-color: #003A8F;
+  box-shadow: 0 0 0 3px rgba(0, 58, 143, 0.1);
+}
+
+.library-comment-composer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.library-comment-type-select {
+  padding: 0.45rem 0.85rem;
+  border-radius: 0.5rem;
+  border: 1.5px solid #E2E8F0;
+  background: white;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #334155;
+  outline: none;
+  cursor: pointer;
+}
+
+.library-comment-post-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.25rem;
+  border-radius: 0.6rem;
+  background: #003A8F;
+  color: white;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 58, 143, 0.2);
+}
+
+.library-comment-post-btn:hover:not(:disabled) {
+  background: #002C6B;
+  transform: translateY(-1px);
+}
+
+.library-comment-post-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
