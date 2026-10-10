@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   LIBRARY_PROJECTS,
   type LibraryDepartment,
@@ -11,88 +11,140 @@ import {
 } from '@/components/library/library-data';
 import { LibraryShell } from '@/components/library/library-shell';
 
-export type StudyComment = {
+export type ViewerRole =
+  | 'Student Reader'
+  | 'Faculty / Researcher'
+  | 'Industry Partner'
+  | 'Guest Reader';
+
+export type CommentIntent =
+  | 'Research Inquiry'
+  | 'Industry Interest'
+  | 'Citation Request'
+  | 'Methodology Feedback'
+  | 'General Praise';
+
+export type ViewerComment = {
   id: string;
-  projectId: number | string;
+  projectId: number;
   authorName: string;
-  authorRole: 'Librarian' | 'Adviser' | 'Panel Chair' | 'Student';
-  category?: string;
+  authorRole: ViewerRole;
+  affiliation?: string;
+  intent: CommentIntent;
   body: string;
   createdAt: string;
+  librarianReply?: {
+    authorName: string;
+    body: string;
+    repliedAt: string;
+  };
 };
 
-const DEFAULT_COMMENTS: StudyComment[] = [
+const DEFAULT_VIEWER_COMMENTS: ViewerComment[] = [
   {
-    id: 'c-1',
+    id: 'vc-1',
     projectId: 1,
-    authorName: 'Elena Santos',
-    authorRole: 'Librarian',
-    category: 'Archive Record',
-    body: 'Hardbound manuscript received and cataloged in the university thesis archives (Call No. QA76.76.L36 2024). Digital copy indexed for open campus repository access.',
-    createdAt: '2024-03-15T09:30:00Z'
+    authorName: 'Marc A. Velasco',
+    authorRole: 'Student Reader',
+    affiliation: '4th Year BSIT',
+    intent: 'Research Inquiry',
+    body: 'We are currently developing our senior capstone on adaptive student learning. Could our group reference your methodology on predictive risk intervention? The 25% improvement rate was remarkable and very inspiring!',
+    createdAt: '2024-03-18T10:30:00Z',
+    librarianReply: {
+      authorName: 'Elena Santos (University Librarian)',
+      body: 'Hello Marc! Yes, this thesis is published under open campus access. You can find the full methodology in Chapter 3 and cite it using the formal citation format on the project page.',
+      repliedAt: '2024-03-19T09:15:00Z'
+    }
   },
   {
-    id: 'c-2',
+    id: 'vc-2',
     projectId: 1,
-    authorName: 'Dr. Ricardo Cruz',
-    authorRole: 'Adviser',
-    category: 'Final Review',
-    body: 'All panel defense revisions regarding the predictive analytics algorithm and data ethics disclosure have been satisfied.',
-    createdAt: '2024-03-10T14:15:00Z'
+    authorName: 'Engr. Dennis Mendoza',
+    authorRole: 'Faculty / Researcher',
+    affiliation: 'College of Information Computing',
+    intent: 'Methodology Feedback',
+    body: 'Comprehensive statistical validation on the 200 pilot students. Has the machine learning model weights file or repository archive been cataloged for reproducibility?',
+    createdAt: '2024-03-22T14:45:00Z',
+    librarianReply: {
+      authorName: 'Elena Santos (University Librarian)',
+      body: 'Yes, Engr. Mendoza. Model configurations and synthetic training datasets are cataloged in the Supplementary Data archive (Call No. LIB-2024-IT-001).',
+      repliedAt: '2024-03-23T11:00:00Z'
+    }
   },
   {
-    id: 'c-3',
+    id: 'vc-3',
     projectId: 1,
-    authorName: 'Prof. Maria Ramos',
-    authorRole: 'Panel Chair',
-    category: 'Clearance',
-    body: 'Clearance approved. The system demo and source code repository links are archived in the appendix.',
-    createdAt: '2024-03-12T11:00:00Z'
+    authorName: 'Northbridge Logistics Tech Corp.',
+    authorRole: 'Industry Partner',
+    affiliation: 'Corporate Innovation Partner',
+    intent: 'Industry Interest',
+    body: 'We reviewed the pilot deployment metrics showing a 40% reduction in stockouts. Our engineering team is very interested in discussing a technology transfer and internship trial with the university.',
+    createdAt: '2024-04-05T16:20:00Z'
   },
   {
-    id: 'c-4',
+    id: 'vc-4',
     projectId: 2,
-    authorName: 'Elena Santos',
-    authorRole: 'Librarian',
-    category: 'Archive Record',
-    body: 'Physical prototype blueprints and ESP32 schematic diagram verified and appended to the manuscript archive.',
-    createdAt: '2024-04-02T10:45:00Z'
+    authorName: 'Christian Flores',
+    authorRole: 'Student Reader',
+    affiliation: '3rd Year MET',
+    intent: 'Research Inquiry',
+    body: 'The ESP32 microcontroller sensor wiring diagram and charge controller specs in Chapter 3 were extremely clear and helpful for our renewable energy design project. Thank you for publishing this!',
+    createdAt: '2024-04-12T09:10:00Z',
+    librarianReply: {
+      authorName: 'Elena Santos (University Librarian)',
+      body: 'Glad it helped Christian! The full physical schematic is also available for viewing in the engineering thesis archive room.',
+      repliedAt: '2024-04-12T14:30:00Z'
+    }
   },
   {
-    id: 'c-5',
+    id: 'vc-5',
+    projectId: 2,
+    authorName: 'GreenVolt Solar Solutions',
+    authorRole: 'Industry Partner',
+    affiliation: 'Renewable Energy Partner',
+    intent: 'Industry Interest',
+    body: 'Interested in the real-time efficiency monitoring firmware. Would the authors or faculty adviser be available for an industry coordination inquiry regarding solar array monitoring?',
+    createdAt: '2024-04-20T11:40:00Z'
+  },
+  {
+    id: 'vc-6',
     projectId: 3,
-    authorName: 'Dr. Anna Reyes',
-    authorRole: 'Adviser',
-    category: 'Cataloging Note',
-    body: 'Herbal medicine formulation dataset has been validated by faculty researchers and cleared for public academic citation.',
-    createdAt: '2023-11-20T16:20:00Z'
+    authorName: 'Dr. Sarah Cruz',
+    authorRole: 'Faculty / Researcher',
+    affiliation: 'Department of Health Sciences',
+    intent: 'Citation Request',
+    body: 'The botanical classification and pharmacological evidence references are very well organized. This serves as an excellent benchmark for future ethnobotanical studies in the region.',
+    createdAt: '2023-11-28T15:25:00Z'
   },
   {
-    id: 'c-6',
+    id: 'vc-7',
     projectId: 5,
-    authorName: 'Elena Santos',
-    authorRole: 'Librarian',
-    category: 'Equipment Archive',
-    body: 'Naval architecture water-tank test logs and drone calibration reports uploaded to supporting files.',
-    createdAt: '2023-12-05T08:15:00Z'
+    authorName: 'Capt. Arthur Lim',
+    authorRole: 'Guest Reader',
+    affiliation: 'Naval Architecture Alumni / Maritime Industry',
+    intent: 'General Praise',
+    body: 'Outstanding engineering work on the waterproof casing and turbidity sensor integration. Practical, low-cost innovation that addresses real coastal pollution detection challenges.',
+    createdAt: '2023-12-14T13:10:00Z'
   },
   {
-    id: 'c-7',
+    id: 'vc-8',
     projectId: 7,
-    authorName: 'Prof. Maria Ramos',
-    authorRole: 'Panel Chair',
-    category: 'Clearance',
-    body: 'EV charging load-balancing results approved. Recommendation submitted for campus utility pilot deployment.',
-    createdAt: '2024-02-18T13:40:00Z'
+    authorName: 'Engr. Ramon Bautista',
+    authorRole: 'Faculty / Researcher',
+    affiliation: 'Campus Facilities & Utilities',
+    intent: 'Industry Interest',
+    body: 'We are reviewing this completed capstone for possible campus-wide smart charging point adoption near Building C. Excellent documentation of the contactor relay safety mechanisms.',
+    createdAt: '2024-02-24T10:05:00Z'
   },
   {
-    id: 'c-8',
+    id: 'vc-9',
     projectId: 9,
-    authorName: 'Elena Santos',
-    authorRole: 'Librarian',
-    category: 'Archive Record',
-    body: 'Thesis tracking workflow manuscript indexed. Full PDF verified against institutional formatting guidelines.',
-    createdAt: '2023-10-14T15:10:00Z'
+    authorName: 'Paolo Del Rosario',
+    authorRole: 'Student Reader',
+    affiliation: '3rd Year BSIT',
+    intent: 'Research Inquiry',
+    body: 'The UI workflow diagrams for title submission and panel defense scheduling gave our project team great architectural inspiration. Kudos to the graduating authors!',
+    createdAt: '2023-10-25T14:50:00Z'
   }
 ];
 
@@ -129,58 +181,73 @@ function formatDate(value: string): string {
     : date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-function getAvatarClass(role: string): string {
+function getAvatarClass(role: ViewerRole): string {
   switch (role) {
-    case 'Librarian':
-      return 'is-librarian';
-    case 'Adviser':
-      return 'is-adviser';
-    case 'Panel Chair':
-      return 'is-panel';
-    case 'Student':
-    default:
+    case 'Student Reader':
       return 'is-student';
+    case 'Faculty / Researcher':
+      return 'is-faculty';
+    case 'Industry Partner':
+      return 'is-industry';
+    case 'Guest Reader':
+    default:
+      return 'is-guest';
+  }
+}
+
+function getIntentBadgeStyle(intent: CommentIntent) {
+  switch (intent) {
+    case 'Industry Interest':
+      return { background: '#FEF3C7', color: '#B45309', border: '1px solid #FDE68A' };
+    case 'Research Inquiry':
+      return { background: '#EFF6FF', color: '#003A8F', border: '1px solid #BFDBFE' };
+    case 'Citation Request':
+      return { background: '#FAF5FF', color: '#7E22CE', border: '1px solid #E9D5FF' };
+    case 'Methodology Feedback':
+      return { background: '#ECFDF5', color: '#047857', border: '1px solid #A7F3D0' };
+    case 'General Praise':
+    default:
+      return { background: '#F1F5F9', color: '#475569', border: '1px solid #E2E8F0' };
   }
 }
 
 export function LibraryEngagement() {
-  const [comments, setComments] = useState<StudyComment[]>(() => {
+  const [comments, setComments] = useState<ViewerComment[]>(() => {
     try {
-      const stored = localStorage.getItem('thesistrack_library_comments');
+      const stored = localStorage.getItem('thesistrack_viewer_comments');
       if (stored) {
         return JSON.parse(stored);
       }
     } catch {
       // Fallback
     }
-    return DEFAULT_COMMENTS;
+    return DEFAULT_VIEWER_COMMENTS;
   });
 
   const [departmentFilter, setDepartmentFilter] = useState<'all' | LibraryDepartment>('all');
+  const [viewerRoleFilter, setViewerRoleFilter] = useState<'all' | ViewerRole>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [hasCommentsOnly, setHasCommentsOnly] = useState(false);
   const [activeStudyId, setActiveStudyId] = useState<number>(1);
   const [viewTab, setViewTab] = useState<'study-hub' | 'all-comments-feed'>('study-hub');
 
-  // New comment composer state
-  const [commentDraft, setCommentDraft] = useState('');
-  const [commentRole, setCommentRole] = useState<'Librarian' | 'Adviser' | 'Panel Chair'>('Librarian');
-  const [commentCategory, setCommentCategory] = useState('Archive Record');
-  const [authorNameInput, setAuthorNameInput] = useState('University Librarian');
+  // Replying state
+  const [replyingCommentId, setReplyingCommentId] = useState<string | null>(null);
+  const [replyDraft, setReplyDraft] = useState('');
 
-  // Sync to localStorage
-  const saveComments = useCallback((updated: StudyComment[]) => {
+  // Persist comments
+  const saveComments = useCallback((updated: ViewerComment[]) => {
     setComments(updated);
     try {
-      localStorage.setItem('thesistrack_library_comments', JSON.stringify(updated));
+      localStorage.setItem('thesistrack_viewer_comments', JSON.stringify(updated));
     } catch {
       // Ignore
     }
   }, []);
 
-  // Comments map by projectId
+  // Comments mapped by project ID
   const commentsByProject = useMemo(() => {
-    const map = new Map<number, StudyComment[]>();
+    const map = new Map<number, ViewerComment[]>();
     for (const comment of comments) {
       const numId = Number(comment.projectId);
       const list = map.get(numId) || [];
@@ -190,7 +257,7 @@ export function LibraryEngagement() {
     return map;
   }, [comments]);
 
-  // Filtered studies list
+  // Filtered studies
   const filteredStudies = useMemo(() => {
     return LIBRARY_PROJECTS.filter((project) => {
       if (departmentFilter !== 'all' && project.department !== departmentFilter) {
@@ -203,7 +270,12 @@ export function LibraryEngagement() {
       const q = searchQuery.trim().toLowerCase();
       if (q) {
         const projectComments = commentsByProject.get(project.id) || [];
-        const matchesComment = projectComments.some((c) => c.body.toLowerCase().includes(q) || c.authorName.toLowerCase().includes(q));
+        const matchesComment = projectComments.some(
+          (c) =>
+            c.body.toLowerCase().includes(q) ||
+            c.authorName.toLowerCase().includes(q) ||
+            (c.affiliation && c.affiliation.toLowerCase().includes(q))
+        );
         return (
           project.title.toLowerCase().includes(q) ||
           project.authors.join(' ').toLowerCase().includes(q) ||
@@ -215,7 +287,7 @@ export function LibraryEngagement() {
     });
   }, [departmentFilter, hasCommentsOnly, searchQuery, commentsByProject]);
 
-  // Currently active study
+  // Active study selected
   const activeStudy = useMemo(() => {
     return (
       LIBRARY_PROJECTS.find((p) => p.id === activeStudyId) ||
@@ -224,41 +296,41 @@ export function LibraryEngagement() {
     );
   }, [activeStudyId, filteredStudies]);
 
+  // Comments for the active study (filtered by viewer role if set)
   const activeStudyComments = useMemo(() => {
-    return (commentsByProject.get(activeStudy.id) || []).sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
-  }, [commentsByProject, activeStudy.id]);
+    const list = commentsByProject.get(activeStudy.id) || [];
+    return list
+      .filter((c) => viewerRoleFilter === 'all' || c.authorRole === viewerRoleFilter)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, [commentsByProject, activeStudy.id, viewerRoleFilter]);
 
-  // Overall Statistics
+  // Total stats
   const totalViews = useMemo(() => {
     return LIBRARY_PROJECTS.reduce((acc, p) => acc + p.views, 0);
   }, []);
 
-  const totalSignedViews = useMemo(() => {
-    return Math.round(totalViews * 0.68);
-  }, [totalViews]);
+  const totalViewerCommentsCount = useMemo(() => comments.length, [comments]);
 
-  const totalGuestViews = useMemo(() => {
-    return totalViews - totalSignedViews;
-  }, [totalViews, totalSignedViews]);
+  function handleAddLibrarianReply(commentId: string) {
+    if (!replyDraft.trim()) return;
 
-  function handlePostComment(e: React.FormEvent) {
-    e.preventDefault();
-    if (!commentDraft.trim()) return;
+    const updated = comments.map((comment) => {
+      if (comment.id === commentId) {
+        return {
+          ...comment,
+          librarianReply: {
+            authorName: 'Elena Santos (University Librarian)',
+            body: replyDraft.trim(),
+            repliedAt: new Date().toISOString()
+          }
+        };
+      }
+      return comment;
+    });
 
-    const newComment: StudyComment = {
-      id: `comment-${Date.now()}`,
-      projectId: activeStudy.id,
-      authorName: authorNameInput.trim() || 'University Librarian',
-      authorRole: commentRole,
-      category: commentCategory,
-      body: commentDraft.trim(),
-      createdAt: new Date().toISOString()
-    };
-
-    saveComments([newComment, ...comments]);
-    setCommentDraft('');
+    saveComments(updated);
+    setReplyDraft('');
+    setReplyingCommentId(null);
   }
 
   function handleDeleteComment(commentId: string) {
@@ -269,7 +341,7 @@ export function LibraryEngagement() {
     <LibraryShell
       activeNav="engagement"
       title="Views & Comments"
-      description="Monitor research reads, analyze campus engagement, and manage librarian notes and comments"
+      description="Monitor viewer readership and review feedback from students, faculty, and industry partners on published research"
     >
       <div className="library-engagement-container">
 
@@ -278,10 +350,10 @@ export function LibraryEngagement() {
           <div className="library-repo-hero-text">
             <h1>
               <i className="fas fa-comments" style={{ color: '#003A8F' }} aria-hidden="true" />
-              Research Views & Comments Hub
+              Published Research: Views & Viewer Comments
             </h1>
             <p>
-              View detailed readership metrics and review feedback, archival remarks, and defense notes on all completed capstones.
+              Review comments, citation requests, and inquiries left by campus and public viewers on completed capstones and theses.
             </p>
           </div>
           <div className="library-repo-hero-actions">
@@ -291,7 +363,7 @@ export function LibraryEngagement() {
             </span>
             <span className="library-browse-stat-pill is-saved">
               <i className="fas fa-comment-dots" aria-hidden="true" />
-              {comments.length} Comments Cataloged
+              {totalViewerCommentsCount} Viewer Comments
             </span>
           </div>
         </div>
@@ -324,14 +396,14 @@ export function LibraryEngagement() {
         {/* Controls Toolbar */}
         <div className="library-browse-controls-card">
           <div className="library-browse-controls-row">
-            
+
             {/* Search Input */}
             <div className="library-browse-search-wrapper">
               <i className="fas fa-search library-browse-search-icon" aria-hidden="true" />
               <input
-                id="engagement-search"
+                id="viewer-engagement-search"
                 type="text"
-                placeholder="Search studies, authors, or comment text..."
+                placeholder="Search published theses, authors, or viewer comments..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="library-browse-search-field"
@@ -349,22 +421,21 @@ export function LibraryEngagement() {
               )}
             </div>
 
-            {/* Department select */}
+            {/* Viewer Role Filter */}
             <div className="library-browse-select-wrap">
-              <i className="fas fa-building-columns library-browse-select-icon" aria-hidden="true" />
+              <i className="fas fa-user-tag library-browse-select-icon" aria-hidden="true" />
               <select
-                id="engagement-department"
-                value={departmentFilter}
-                onChange={(e) => setDepartmentFilter(e.target.value as 'all' | LibraryDepartment)}
+                id="viewer-role-filter"
+                value={viewerRoleFilter}
+                onChange={(e) => setViewerRoleFilter(e.target.value as 'all' | ViewerRole)}
                 className="library-browse-select"
-                aria-label="Filter by department"
+                aria-label="Filter by viewer type"
               >
-                <option value="all">All Departments</option>
-                <option value="IT">IT - Information Tech</option>
-                <option value="MET">MET - Manufacturing</option>
-                <option value="TCM">TCM - Tech Comm</option>
-                <option value="ESM">ESM - Engineering</option>
-                <option value="NAME">NAME - Naval Architecture</option>
+                <option value="all">All Viewer Types</option>
+                <option value="Student Reader">Student Readers</option>
+                <option value="Faculty / Researcher">Faculty / Researchers</option>
+                <option value="Industry Partner">Industry Partners</option>
+                <option value="Guest Reader">Guest Readers</option>
               </select>
               <i className="fas fa-chevron-down library-browse-select-caret" aria-hidden="true" />
             </div>
@@ -374,13 +445,13 @@ export function LibraryEngagement() {
               type="button"
               className={`library-browse-saved-toggle ${hasCommentsOnly ? 'is-active' : ''}`}
               onClick={() => setHasCommentsOnly(!hasCommentsOnly)}
-              title="Filter studies with comments"
+              title="Show only studies that have viewer comments"
             >
               <i className="fas fa-comment-dots" aria-hidden="true" />
-              <span>Has Comments Only</span>
+              <span>With Comments Only</span>
             </button>
 
-            {/* Master View Switcher (By Study vs All Comments Feed) */}
+            {/* View Switcher: By Study vs All Comments Feed */}
             <div className="library-browse-view-switch" role="group" aria-label="View toggle">
               <button
                 type="button"
@@ -388,7 +459,7 @@ export function LibraryEngagement() {
                 onClick={() => setViewTab('study-hub')}
               >
                 <i className="fas fa-columns" aria-hidden="true" />
-                <span>By Research</span>
+                <span>By Published Research</span>
               </button>
               <button
                 type="button"
@@ -396,7 +467,7 @@ export function LibraryEngagement() {
                 onClick={() => setViewTab('all-comments-feed')}
               >
                 <i className="fas fa-list-ul" aria-hidden="true" />
-                <span>All Comments Feed</span>
+                <span>All Viewer Feed</span>
               </button>
             </div>
 
@@ -407,21 +478,21 @@ export function LibraryEngagement() {
         {viewTab === 'study-hub' ? (
           <div className="library-engagement-split">
 
-            {/* Left Column: Research Studies List */}
+            {/* Left Column: Published & Finished Research Studies */}
             <div className="library-engagement-list-col">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 0.25rem' }}>
                 <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Research Studies ({filteredStudies.length})
+                  Published Research ({filteredStudies.length})
                 </span>
                 <span style={{ fontSize: '0.8rem', color: '#64748B' }}>
-                  Click to view comments
+                  Select to see viewer comments
                 </span>
               </div>
 
               {filteredStudies.length === 0 ? (
                 <div className="library-browse-empty-state" style={{ padding: '3rem 1.5rem' }}>
                   <i className="fas fa-search" style={{ fontSize: '2rem', color: '#94A3B8' }} aria-hidden="true" />
-                  <p style={{ margin: 0, fontWeight: 700, color: '#0F172A' }}>No matching studies found</p>
+                  <p style={{ margin: 0, fontWeight: 700, color: '#0F172A' }}>No matching published studies</p>
                   <button
                     type="button"
                     className="library-active-chip-clear-all"
@@ -429,9 +500,10 @@ export function LibraryEngagement() {
                       setSearchQuery('');
                       setDepartmentFilter('all');
                       setHasCommentsOnly(false);
+                      setViewerRoleFilter('all');
                     }}
                   >
-                    Clear Filters
+                    Reset Filters
                   </button>
                 </div>
               ) : (
@@ -457,9 +529,9 @@ export function LibraryEngagement() {
                         <span className={`library-dept-pill ${deptPillClass}`}>
                           {study.department}
                         </span>
-                        <span className="library-browse-card-views">
-                          <i className="fas fa-eye" aria-hidden="true" />
-                          {study.views.toLocaleString()} reads
+                        <span className="library-published-status-badge">
+                          <i className="fas fa-check-circle" aria-hidden="true" />
+                          Published {study.year}
                         </span>
                       </div>
 
@@ -470,18 +542,17 @@ export function LibraryEngagement() {
                       <div className="library-engagement-study-meta">
                         <span>{study.authorsShort || study.authors[0]}</span>
                         <span style={{ color: '#CBD5E1' }}>•</span>
-                        <span>{study.year}</span>
-                        <span style={{ color: '#CBD5E1' }}>•</span>
                         <span>Adviser: {study.adviser}</span>
                       </div>
 
                       <div className="library-engagement-study-footer">
                         <span className={`library-engagement-comment-pill ${studyComments.length === 0 ? 'has-none' : ''}`}>
-                          <i className="fas fa-comment" aria-hidden="true" />
-                          {studyComments.length} {studyComments.length === 1 ? 'Comment' : 'Comments'}
+                          <i className="fas fa-comment-dots" aria-hidden="true" />
+                          {studyComments.length} {studyComments.length === 1 ? 'Viewer Comment' : 'Viewer Comments'}
                         </span>
-                        <span style={{ fontSize: '0.78rem', color: isSelected ? '#003A8F' : '#94A3B8', fontWeight: 700 }}>
-                          {isSelected ? 'Viewing ➔' : 'Select'}
+                        <span className="library-browse-card-views">
+                          <i className="fas fa-eye" aria-hidden="true" />
+                          {study.views.toLocaleString()} reads
                         </span>
                       </div>
                     </article>
@@ -490,27 +561,28 @@ export function LibraryEngagement() {
               )}
             </div>
 
-            {/* Right Column: Active Study Views & Comments Hub Panel */}
+            {/* Right Column: Active Study Viewer Comments & Engagement Hub */}
             <div className="library-engagement-hub-panel">
-              
-              {/* Header */}
+
+              {/* Study Header */}
               <div className="library-engagement-hub-header">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <span className={`library-dept-pill ${getDeptPillClass(activeStudy.department)}`}>
                     {activeStudy.department} - {getDepartmentLabel(activeStudy.department)}
                   </span>
+                  <span className="library-published-status-badge">
+                    <i className="fas fa-award" aria-hidden="true" />
+                    Published & Cataloged {activeStudy.year}
+                  </span>
                   <span className="library-browse-type-badge">
                     <i className={`fas ${getProjectIcon(activeStudy.type)}`} aria-hidden="true" />
                     {activeStudy.type}
-                  </span>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748B' }}>
-                    Published {activeStudy.year}
                   </span>
                   <Link
                     href={`/library/project-details?id=${activeStudy.id}`}
                     style={{ marginLeft: 'auto', textDecoration: 'none', color: '#003A8F', fontWeight: 700, fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                   >
-                    <span>Full Study Page</span>
+                    <span>View Published Record</span>
                     <i className="fas fa-arrow-up-right-from-square" aria-hidden="true" />
                   </Link>
                 </div>
@@ -525,10 +597,10 @@ export function LibraryEngagement() {
                 </div>
               </div>
 
-              {/* Readership Breakdown Strip */}
+              {/* Readership Stats */}
               <div>
                 <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '0.6rem' }}>
-                  Readership & View Statistics
+                  Viewer Engagement Overview
                 </span>
                 <div className="library-engagement-views-strip">
                   <div className="library-engagement-view-box">
@@ -536,93 +608,52 @@ export function LibraryEngagement() {
                     <strong>{activeStudy.views.toLocaleString()}</strong>
                   </div>
                   <div className="library-engagement-view-box">
-                    <span>Signed-in Campus</span>
+                    <span>Student / Faculty</span>
                     <strong style={{ color: '#003A8F' }}>{Math.round(activeStudy.views * 0.72).toLocaleString()}</strong>
                   </div>
                   <div className="library-engagement-view-box">
-                    <span>Guest Visitors</span>
+                    <span>Guest / Public</span>
                     <strong style={{ color: '#D97706' }}>{Math.round(activeStudy.views * 0.28).toLocaleString()}</strong>
                   </div>
                   <div className="library-engagement-view-box">
-                    <span>Archived Notes</span>
+                    <span>Viewer Comments</span>
                     <strong style={{ color: '#059669' }}>{activeStudyComments.length}</strong>
                   </div>
                 </div>
               </div>
 
-              {/* Comments Section */}
+              {/* Viewer Comments Section */}
               <div className="library-comments-thread">
                 <div className="library-comments-thread-head">
                   <h3>
-                    <i className="fas fa-comment-dots" style={{ color: '#003A8F' }} aria-hidden="true" />
-                    <span>Librarian Notes & Review Comments ({activeStudyComments.length})</span>
+                    <i className="fas fa-comments" style={{ color: '#003A8F' }} aria-hidden="true" />
+                    <span>Comments From Readers & Viewers ({activeStudyComments.length})</span>
                   </h3>
-                </div>
-
-                {/* Add new comment composer */}
-                <form onSubmit={handlePostComment} className="library-comment-composer">
-                  <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    Post Librarian Comment / Archival Note
-                  </span>
-                  
-                  <textarea
-                    rows={3}
-                    placeholder={`Write a comment or archival note for "${activeStudy.title}" (e.g. hard copy shelf cataloging, defense verification, revision remarks)...`}
-                    value={commentDraft}
-                    onChange={(e) => setCommentDraft(e.target.value)}
-                    required
-                  />
-
-                  <div className="library-comment-composer-actions">
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                      <select
-                        value={commentRole}
-                        onChange={(e) => setCommentRole(e.target.value as typeof commentRole)}
-                        className="library-comment-type-select"
-                        title="Your comment role"
-                      >
-                        <option value="Librarian">Role: Librarian</option>
-                        <option value="Adviser">Role: Adviser</option>
-                        <option value="Panel Chair">Role: Panel Chair</option>
-                      </select>
-
-                      <select
-                        value={commentCategory}
-                        onChange={(e) => setCommentCategory(e.target.value)}
-                        className="library-comment-type-select"
-                        title="Comment category"
-                      >
-                        <option value="Archive Record">Category: Archive Record</option>
-                        <option value="Cataloging Note">Category: Cataloging Note</option>
-                        <option value="Clearance Note">Category: Clearance Note</option>
-                        <option value="Format Review">Category: Format Review</option>
-                      </select>
-                    </div>
-
+                  {viewerRoleFilter !== 'all' && (
                     <button
-                      type="submit"
-                      disabled={!commentDraft.trim()}
-                      className="library-comment-post-btn"
+                      type="button"
+                      onClick={() => setViewerRoleFilter('all')}
+                      style={{ background: 'none', border: 'none', color: '#003A8F', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}
                     >
-                      <i className="fas fa-paper-plane" aria-hidden="true" />
-                      <span>Post Comment</span>
+                      Show All Types
                     </button>
-                  </div>
-                </form>
+                  )}
+                </div>
 
                 {/* List of comments for this study */}
                 {activeStudyComments.length === 0 ? (
-                  <div style={{ padding: '2.5rem 1.5rem', background: '#F8FAFC', borderRadius: '1rem', border: '1px dashed #CBD5E1', textAlign: 'center' }}>
+                  <div style={{ padding: '3rem 1.5rem', background: '#F8FAFC', borderRadius: '1rem', border: '1px dashed #CBD5E1', textAlign: 'center' }}>
                     <i className="fas fa-comment-slash" style={{ fontSize: '2rem', color: '#94A3B8', marginBottom: '0.5rem' }} aria-hidden="true" />
-                    <p style={{ margin: '0 0 0.3rem 0', fontWeight: 700, color: '#0F172A' }}>No comments recorded yet</p>
+                    <p style={{ margin: '0 0 0.3rem 0', fontWeight: 700, color: '#0F172A' }}>No viewer comments on this research yet</p>
                     <span style={{ fontSize: '0.85rem', color: '#64748B' }}>
-                      Use the box above to record the first cataloging note, shelf reference, or archival observation for this research.
+                      When campus readers, student peers, faculty, or industry partners view this published study and leave feedback, it will appear here.
                     </span>
                   </div>
                 ) : (
                   <div className="library-comments-thread-list">
                     {activeStudyComments.map((comment) => (
                       <div key={comment.id} className="library-comment-card">
+                        
                         {/* Avatar */}
                         <div className={`library-comment-avatar ${getAvatarClass(comment.authorRole)}`}>
                           {comment.authorName.charAt(0)}
@@ -636,11 +667,14 @@ export function LibraryEngagement() {
                               <span className={`library-comment-role-badge ${getAvatarClass(comment.authorRole)}`}>
                                 {comment.authorRole}
                               </span>
-                              {comment.category && (
-                                <span style={{ fontSize: '0.72rem', background: '#F1F5F9', color: '#475569', padding: '0.15rem 0.5rem', borderRadius: '4px', fontWeight: 600 }}>
-                                  {comment.category}
+                              {comment.affiliation && (
+                                <span style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 600 }}>
+                                  ({comment.affiliation})
                                 </span>
                               )}
+                              <span style={{ fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: '4px', fontWeight: 700, ...getIntentBadgeStyle(comment.intent) }}>
+                                {comment.intent}
+                              </span>
                             </span>
 
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -651,7 +685,7 @@ export function LibraryEngagement() {
                                 type="button"
                                 className="library-comment-delete-btn"
                                 onClick={() => handleDeleteComment(comment.id)}
-                                title="Remove this note"
+                                title="Remove viewer comment"
                               >
                                 <i className="fas fa-trash-can" aria-hidden="true" />
                               </button>
@@ -661,6 +695,76 @@ export function LibraryEngagement() {
                           <p className="library-comment-text">
                             {comment.body}
                           </p>
+
+                          {/* Existing Librarian Official Reply */}
+                          {comment.librarianReply && (
+                            <div className="library-comment-reply-box">
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem' }}>
+                                <span style={{ fontWeight: 800, color: '#003A8F', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                                  <i className="fas fa-reply" aria-hidden="true" />
+                                  {comment.librarianReply.authorName}
+                                </span>
+                                <span style={{ color: '#64748B' }}>
+                                  {formatDate(comment.librarianReply.repliedAt)}
+                                </span>
+                              </div>
+                              <p style={{ margin: 0, fontSize: '0.85rem', color: '#1E3A8A', lineHeight: 1.5 }}>
+                                {comment.librarianReply.body}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Librarian Reply Action / Form */}
+                          {!comment.librarianReply && (
+                            <div style={{ marginTop: '0.4rem' }}>
+                              {replyingCommentId === comment.id ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem', background: '#EFF6FF', padding: '0.75rem', borderRadius: '0.65rem' }}>
+                                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#003A8F' }}>
+                                    Reply as University Librarian:
+                                  </span>
+                                  <textarea
+                                    rows={2}
+                                    placeholder="Write an official response or repository clarification to this viewer..."
+                                    value={replyDraft}
+                                    onChange={(e) => setReplyDraft(e.target.value)}
+                                    style={{ width: '100%', padding: '0.6rem', borderRadius: '0.4rem', border: '1px solid #BFDBFE', fontSize: '0.85rem', outline: 'none' }}
+                                  />
+                                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                                    <button
+                                      type="button"
+                                      className="library-browse-quick-btn"
+                                      style={{ padding: '0.35rem 0.75rem', fontSize: '0.78rem' }}
+                                      onClick={() => {
+                                        setReplyingCommentId(null);
+                                        setReplyDraft('');
+                                      }}
+                                    >
+                                      Cancel
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="library-comment-post-btn"
+                                      style={{ padding: '0.35rem 0.9rem', fontSize: '0.78rem' }}
+                                      disabled={!replyDraft.trim()}
+                                      onClick={() => handleAddLibrarianReply(comment.id)}
+                                    >
+                                      Send Official Reply
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setReplyingCommentId(comment.id)}
+                                  style={{ background: 'none', border: 'none', padding: 0, color: '#003A8F', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                                >
+                                  <i className="fas fa-reply" aria-hidden="true" />
+                                  <span>Reply to Viewer</span>
+                                </button>
+                              )}
+                            </div>
+                          )}
+
                         </div>
                       </div>
                     ))}
@@ -674,19 +778,19 @@ export function LibraryEngagement() {
           </div>
         ) : (
 
-          /* View Mode 2: Master All-Comments Activity Feed */
+          /* View Mode 2: Master All Viewer Comments Feed Across Published Research */
           <div style={{ background: 'white', borderRadius: '1.25rem', padding: '1.75rem', border: '1.5px solid #E2E8F0', boxShadow: '0 4px 20px rgba(0, 58, 143, 0.04)', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
               <div>
                 <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0F172A' }}>
-                  All Recent Comments Across Research Projects
+                  Viewer Feedback on Published Theses & Capstones
                 </h3>
                 <p style={{ margin: '0.2rem 0 0 0', color: '#64748B', fontSize: '0.85rem' }}>
-                  Live chronological record of librarian feedback, panel verifications, and archival remarks.
+                  Live stream of questions, citation requests, and industry interest from campus and public readers.
                 </p>
               </div>
               <span className="library-browse-stat-pill is-primary">
-                {comments.length} Total Records
+                {comments.length} Total Viewer Comments
               </span>
             </div>
 
@@ -702,7 +806,7 @@ export function LibraryEngagement() {
 
                     <div className="library-comment-body">
                       {targetProject && (
-                        <div style={{ marginBottom: '0.25rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
                           <button
                             type="button"
                             onClick={() => {
@@ -714,6 +818,9 @@ export function LibraryEngagement() {
                             <i className="fas fa-book-bookmark" style={{ marginRight: '0.35rem' }} aria-hidden="true" />
                             {targetProject.title}
                           </button>
+                          <span className="library-published-status-badge" style={{ fontSize: '0.68rem', padding: '0.15rem 0.45rem' }}>
+                            Published {targetProject.year}
+                          </span>
                         </div>
                       )}
 
@@ -723,11 +830,14 @@ export function LibraryEngagement() {
                           <span className={`library-comment-role-badge ${getAvatarClass(comment.authorRole)}`}>
                             {comment.authorRole}
                           </span>
-                          {comment.category && (
-                            <span style={{ fontSize: '0.72rem', background: '#F1F5F9', color: '#475569', padding: '0.15rem 0.5rem', borderRadius: '4px', fontWeight: 600 }}>
-                              {comment.category}
+                          {comment.affiliation && (
+                            <span style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 600 }}>
+                              ({comment.affiliation})
                             </span>
                           )}
+                          <span style={{ fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: '4px', fontWeight: 700, ...getIntentBadgeStyle(comment.intent) }}>
+                            {comment.intent}
+                          </span>
                         </span>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -738,7 +848,7 @@ export function LibraryEngagement() {
                             type="button"
                             className="library-comment-delete-btn"
                             onClick={() => handleDeleteComment(comment.id)}
-                            title="Remove this comment"
+                            title="Remove viewer comment"
                           >
                             <i className="fas fa-trash-can" aria-hidden="true" />
                           </button>
@@ -748,6 +858,17 @@ export function LibraryEngagement() {
                       <p className="library-comment-text">
                         {comment.body}
                       </p>
+
+                      {comment.librarianReply && (
+                        <div className="library-comment-reply-box">
+                          <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#003A8F' }}>
+                            Librarian Response ({formatDate(comment.librarianReply.repliedAt)}):
+                          </span>
+                          <p style={{ margin: 0, fontSize: '0.85rem', color: '#1E3A8A', lineHeight: 1.5 }}>
+                            {comment.librarianReply.body}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );

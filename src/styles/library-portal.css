@@ -3441,3 +3441,71 @@
   cursor: not-allowed;
 }
 
+/* ==========================================================================
+   Viewer Role & Published Research Badges
+   ========================================================================== */
+
+.library-comment-avatar.is-student {
+  background: linear-gradient(135deg, #0284C7, #0EA5E9);
+}
+
+.library-comment-avatar.is-faculty {
+  background: linear-gradient(135deg, #7C3AED, #9333EA);
+}
+
+.library-comment-avatar.is-industry {
+  background: linear-gradient(135deg, #D97706, #F59E0B);
+}
+
+.library-comment-avatar.is-guest {
+  background: linear-gradient(135deg, #475569, #64748B);
+}
+
+.library-comment-avatar.is-librarian {
+  background: linear-gradient(135deg, #003A8F, #1E40AF);
+}
+
+.library-comment-role-badge.is-faculty {
+  background: #FAF5FF;
+  color: #7E22CE;
+  border: 1px solid #E9D5FF;
+}
+
+.library-comment-role-badge.is-industry {
+  background: #FEF3C7;
+  color: #B45309;
+  border: 1px solid #FDE68A;
+}
+
+.library-comment-role-badge.is-guest {
+  background: #F1F5F9;
+  color: #475569;
+  border: 1px solid #CBD5E1;
+}
+
+.library-published-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.library-comment-reply-box {
+  margin-top: 0.75rem;
+  border-left: 2.5px solid #003A8F;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: #EFF6FF;
+  padding: 0.75rem 1rem;
+  border-radius: 0 0.65rem 0.65rem 0;
+}
+
