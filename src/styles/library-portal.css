@@ -2743,3 +2743,287 @@
   color: #334155;
 }
 
+/* ==========================================================================
+   Library Repository Page Modern Styles
+   ========================================================================== */
+
+.library-repo-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.library-repo-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  background: white;
+  padding: 1.25rem 1.75rem;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 4px 20px rgba(0, 58, 143, 0.04);
+}
+
+.library-repo-hero-text h1 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 0.25rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.library-repo-hero-text p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #64748B;
+}
+
+.library-repo-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.library-repo-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.35rem;
+  border-radius: 2rem;
+  background: linear-gradient(135deg, #003A8F, #1E40AF);
+  color: white;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 58, 143, 0.25);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.library-repo-upload-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 58, 143, 0.35);
+}
+
+/* Scholar view article card */
+.library-repo-scholar-card {
+  background: white;
+  border-radius: 1.25rem;
+  padding: 1.5rem 1.75rem;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 4px 16px rgba(0, 58, 143, 0.03);
+  display: flex;
+  gap: 1.5rem;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.library-repo-scholar-card:hover {
+  transform: translateY(-2px);
+  border-color: #BFDBFE;
+  box-shadow: 0 14px 32px rgba(0, 58, 143, 0.08);
+}
+
+.library-repo-scholar-icon-box {
+  width: 54px;
+  height: 54px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #003A8F;
+  font-size: 1.6rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 58, 143, 0.08);
+}
+
+.library-repo-scholar-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.library-repo-scholar-title {
+  margin: 0;
+  font-size: 1.18rem;
+  font-weight: 800;
+  color: #0F172A;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.library-repo-scholar-title:hover {
+  color: #003A8F;
+}
+
+.library-repo-scholar-citation-line {
+  font-size: 0.85rem;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.library-repo-scholar-citation-line strong {
+  color: #334155;
+}
+
+.library-repo-scholar-abstract {
+  margin: 0.25rem 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.library-repo-scholar-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+
+.library-repo-scholar-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.library-repo-doc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.65rem;
+  border-radius: 0.5rem;
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.library-repo-scholar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+/* Upload modal styling */
+.library-repo-upload-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 0.5rem 0;
+}
+
+.library-repo-upload-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+@media (max-width: 680px) {
+  .library-repo-upload-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.library-repo-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.library-repo-form-group label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.library-repo-form-input,
+.library-repo-form-select,
+.library-repo-form-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.65rem;
+  border: 1.5px solid #E2E8F0;
+  background: #F8FAFC;
+  font-size: 0.88rem;
+  color: #0F172A;
+  outline: none;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.library-repo-form-input:focus,
+.library-repo-form-select:focus,
+.library-repo-form-textarea:focus {
+  border-color: #003A8F;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(0, 58, 143, 0.1);
+}
+
+.library-repo-dropzone {
+  border: 2px dashed #CBD5E1;
+  border-radius: 1rem;
+  padding: 2.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background: #F8FAFC;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.library-repo-dropzone:hover {
+  background: #EFF6FF;
+  border-color: #93C5FD;
+}
+
+.library-repo-dropzone-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #003A8F;
+  font-size: 1.75rem;
+  box-shadow: 0 4px 12px rgba(0, 58, 143, 0.08);
+}
+
+.library-repo-toast-alert {
+  padding: 0.85rem 1.25rem;
+  border-radius: 0.75rem;
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  color: #065F46;
+  font-size: 0.88rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  animation: fadeIn 0.3s ease;
+}
+
