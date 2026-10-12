@@ -526,3 +526,71 @@ export function getTechnologyLabel(project: Pick<LibraryProject, 'department' | 
       return 'Technologies used';
   }
 }
+
+export type LibrarianPick = {
+  id: string;
+  month: string;
+  year: number;
+  projectId: number;
+  badgeLabel: string;
+  impactTag: string;
+  reason: string;
+  impactMetrics: {
+    label: string;
+    value: string;
+    icon: string;
+  }[];
+  citationText: string;
+};
+
+export const LIBRARIAN_PICKS_OF_THE_MONTH: LibrarianPick[] = [
+  {
+    id: 'pick-oct-2024',
+    month: 'October',
+    year: 2024,
+    projectId: 1,
+    badgeLabel: "Librarian's Pick of the Month · October 2024",
+    impactTag: 'Community & Academic Distinction',
+    reason: 'Selected by the University Library Council for pioneering educational machine learning. Successfully validated across 200 pilot students with an accredited 25% improvement in learning outcomes, national research symposium distinction, and open-source dataset accession.',
+    impactMetrics: [
+      { label: 'Pilot Validation', value: '200 Students', icon: 'fa-user-graduate' },
+      { label: 'Demonstrated Impact', value: '+25% Outcomes', icon: 'fa-chart-line' },
+      { label: 'Accreditation', value: 'Best Paper Award', icon: 'fa-award' },
+      { label: 'Public Readership', value: '1,234 Reads', icon: 'fa-eye' }
+    ],
+    citationText: 'Reyes, J. M., Santos, A. L., & Garcia, P. D. (2024). AI-Powered Learning Management System with Predictive Analytics. International Journal of Educational Technology, 12(3), 45–62.'
+  },
+  {
+    id: 'pick-sep-2024',
+    month: 'September',
+    year: 2024,
+    projectId: 5,
+    badgeLabel: "Librarian's Pick of the Month · September 2024",
+    impactTag: 'High Community & Ecological Impact',
+    reason: 'Recognized for outstanding environmental robotics innovation. Low-cost autonomous surface vessel integrated with marine turbidity sensors, successfully deployed in 3 coastal barangay waterways and cited by municipal conservation offices.',
+    impactMetrics: [
+      { label: 'Coastal Scope', value: '3 Estuaries', icon: 'fa-water' },
+      { label: 'Hardware Cost', value: '70% Lower Cost', icon: 'fa-microchip' },
+      { label: 'Public Readership', value: '1,480 Reads', icon: 'fa-eye' },
+      { label: 'Adviser Distinction', value: 'Dept Commendation', icon: 'fa-certificate' }
+    ],
+    citationText: 'Lim, A., Delgado, J., & Reyes, M. (2023). Marine Pollution Detection Drone with Waterproof Telemetry. University Thesis Vault, Call No. LIB-2023-NAME-005.'
+  },
+  {
+    id: 'pick-aug-2024',
+    month: 'August',
+    year: 2024,
+    projectId: 2,
+    badgeLabel: "Librarian's Pick of the Month · August 2024",
+    impactTag: 'Industry Transfer & Sustainability',
+    reason: 'Distinguished renewable energy capstone featuring real-time ESP32 microcontroller telemetry and charge controller data logging. Benchmarked by 5 incoming senior engineering teams for exceptional documentation.',
+    impactMetrics: [
+      { label: 'System Type', value: 'Solar IoT', icon: 'fa-solar-panel' },
+      { label: 'Hardware Spec', value: 'ESP32 Telemetry', icon: 'fa-bolt' },
+      { label: 'Benchmarked By', value: '5 Capstone Teams', icon: 'fa-users' },
+      { label: 'Public Readership', value: '876 Reads', icon: 'fa-eye' }
+    ],
+    citationText: 'Flores, C., et al. (2024). Smart Solar Energy Monitoring System with Real-Time Efficiency Logging. University Thesis Vault, Call No. LIB-2024-MET-002.'
+  }
+];
+

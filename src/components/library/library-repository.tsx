@@ -58,20 +58,6 @@ export function LibraryRepository() {
   const [viewMode, setViewMode] = useState<'scholar' | 'cards' | 'table'>('scholar');
   const [currentPage, setCurrentPage] = useState(1);
   const [activeProjectId, setActiveProjectId] = useState<number | null>(null);
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [uploadSuccessToast, setUploadSuccessToast] = useState<string | null>(null);
-
-  // New study upload form state
-  const [uploadForm, setUploadForm] = useState({
-    title: '',
-    department: 'IT' as LibraryDepartment,
-    year: '2024',
-    authors: '',
-    adviser: '',
-    abstract: '',
-    keywords: '',
-    type: 'Web-Based' as LibraryProjectType
-  });
 
   const availableYears = useMemo(
     () => Array.from(new Set(LIBRARY_PROJECTS.map((project) => String(project.year)))).sort((a, b) => Number(b) - Number(a)),
@@ -154,27 +140,6 @@ export function LibraryRepository() {
     setCurrentPage(1);
   }
 
-  function handleUploadSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!uploadForm.title.trim()) return;
-
-    setIsUploadModalOpen(false);
-    setUploadSuccessToast(`"${uploadForm.title}" was successfully archived into the library repository.`);
-    setTimeout(() => setUploadSuccessToast(null), 6000);
-
-    // Reset form
-    setUploadForm({
-      title: '',
-      department: 'IT',
-      year: '2024',
-      authors: '',
-      adviser: '',
-      abstract: '',
-      keywords: '',
-      type: 'Web-Based'
-    });
-  }
-
   return (
     <LibraryShell
       activeNav="repository"
@@ -182,14 +147,6 @@ export function LibraryRepository() {
       description="Official institutional archive of accredited theses, machine prototypes, and capstone projects"
     >
       <div className="library-repo-container">
-
-        {/* Upload Success Toast */}
-        {uploadSuccessToast && (
-          <div className="library-repo-toast-alert" role="status">
-            <i className="fas fa-check-circle" style={{ fontSize: '1.1rem' }} aria-hidden="true" />
-            <span>{uploadSuccessToast}</span>
-          </div>
-        )}
 
         {/* Hero Banner */}
         <div className="library-repo-hero">
@@ -199,7 +156,7 @@ export function LibraryRepository() {
               Institutional Repository & Archive
             </h1>
             <p>
-              Explore {LIBRARY_PROJECTS.length} verified studies cataloged with full manuscripts, defense evaluations, and faculty advisership.
+              Explore {LIBRARY_PROJECTS.length} verified studies cataloged with full manuscripts, defense evaluations, and faculty advisership. Completed manuscripts are automatically archived and published upon final panel approval.
             </p>
           </div>
           <div className="library-repo-hero-actions">
@@ -207,15 +164,10 @@ export function LibraryRepository() {
               <i className="fas fa-layer-group" aria-hidden="true" />
               {filteredProjects.length} {filteredProjects.length === 1 ? 'Study' : 'Studies'} Found
             </span>
-            <button
-              type="button"
-              className="library-repo-upload-btn"
-              onClick={() => setIsUploadModalOpen(true)}
-              title="Publish a completed study into the repository archive"
-            >
-              <i className="fas fa-cloud-arrow-up" aria-hidden="true" />
-              <span>Archive New Study</span>
-            </button>
+            <span className="library-published-status-badge" style={{ fontSize: '0.82rem', padding: '0.45rem 0.85rem' }}>
+              <i className="fas fa-check-circle" aria-hidden="true" />
+              <span>Auto-Archived on Completion</span>
+            </span>
           </div>
         </div>
 
@@ -970,177 +922,6 @@ export function LibraryRepository() {
           </div>
         </LibraryModal>
       )}
-
-      {/* Archive New Study Upload Modal */}
-      <LibraryModal
-        maxWidth={850}
-        open={isUploadModalOpen}
-        title="Archive Completed Study to Repository"
-        onClose={() => setIsUploadModalOpen(false)}
-        footer={
-          <div style={{ display: 'flex', gap: '0.75rem', width: '100%', justifyContent: 'flex-end' }}>
-            <button
-              type="button"
-              className="library-browse-quick-btn"
-              onClick={() => setIsUploadModalOpen(false)}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              form="archive-upload-form"
-              className="library-repo-upload-btn"
-            >
-              <i className="fas fa-cloud-arrow-up" aria-hidden="true" />
-              <span>Publish to Archive</span>
-            </button>
-          </div>
-        }
-      >
-        <form id="archive-upload-form" onSubmit={handleUploadSubmit} className="library-repo-upload-form">
-          <div className="library-repo-upload-grid">
-
-            {/* Left Column */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
-              <div className="library-repo-form-group">
-                <label htmlFor="upload-title">Study / Thesis Title *</label>
-                <input
-                  id="upload-title"
-                  type="text"
-                  required
-                  placeholder="e.g. Autonomous Marine Cleaning Drone"
-                  value={uploadForm.title}
-                  onChange={(e) => setUploadForm({ ...uploadForm, title: e.target.value })}
-                  className="library-repo-form-input"
-                />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                <div className="library-repo-form-group">
-                  <label htmlFor="upload-dept">Department *</label>
-                  <select
-                    id="upload-dept"
-                    value={uploadForm.department}
-                    onChange={(e) => setUploadForm({ ...uploadForm, department: e.target.value as LibraryDepartment })}
-                    className="library-repo-form-select"
-                  >
-                    <option value="IT">IT - Information Tech</option>
-                    <option value="MET">MET - Manufacturing</option>
-                    <option value="TCM">TCM - Tech Comm</option>
-                    <option value="ESM">ESM - Engineering</option>
-                    <option value="NAME">NAME - Naval Architecture</option>
-                  </select>
-                </div>
-
-                <div className="library-repo-form-group">
-                  <label htmlFor="upload-year">Year *</label>
-                  <input
-                    id="upload-year"
-                    type="number"
-                    min="2010"
-                    max="2030"
-                    value={uploadForm.year}
-                    onChange={(e) => setUploadForm({ ...uploadForm, year: e.target.value })}
-                    className="library-repo-form-input"
-                  />
-                </div>
-              </div>
-
-              <div className="library-repo-form-group">
-                <label htmlFor="upload-type">Project Type *</label>
-                <select
-                  id="upload-type"
-                  value={uploadForm.type}
-                  onChange={(e) => setUploadForm({ ...uploadForm, type: e.target.value as LibraryProjectType })}
-                  className="library-repo-form-select"
-                >
-                  <option value="Web-Based">Web-Based</option>
-                  <option value="Mobile Application">Mobile Application</option>
-                  <option value="IoT System">IoT System</option>
-                  <option value="AI/ML System">AI/ML System</option>
-                  <option value="Machine / Device">Machine / Device</option>
-                  <option value="Product / Fabrication">Product / Fabrication</option>
-                  <option value="Research Paper">Research Paper</option>
-                </select>
-              </div>
-
-              <div className="library-repo-form-group">
-                <label htmlFor="upload-authors">Student Authors *</label>
-                <input
-                  id="upload-authors"
-                  type="text"
-                  placeholder="e.g. Maria Santos, Juan Reyes"
-                  value={uploadForm.authors}
-                  onChange={(e) => setUploadForm({ ...uploadForm, authors: e.target.value })}
-                  className="library-repo-form-input"
-                />
-              </div>
-
-              <div className="library-repo-form-group">
-                <label htmlFor="upload-adviser">Faculty Adviser</label>
-                <input
-                  id="upload-adviser"
-                  type="text"
-                  placeholder="e.g. Dr. Ricardo Cruz"
-                  value={uploadForm.adviser}
-                  onChange={(e) => setUploadForm({ ...uploadForm, adviser: e.target.value })}
-                  className="library-repo-form-input"
-                />
-              </div>
-            </div>
-
-            {/* Right Column */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
-              <div className="library-repo-form-group" style={{ height: '100%' }}>
-                <label htmlFor="upload-abstract">Study Abstract *</label>
-                <textarea
-                  id="upload-abstract"
-                  required
-                  rows={6}
-                  placeholder="Paste the approved study abstract here..."
-                  value={uploadForm.abstract}
-                  onChange={(e) => setUploadForm({ ...uploadForm, abstract: e.target.value })}
-                  className="library-repo-form-textarea"
-                  style={{ flex: 1, resize: 'none' }}
-                />
-              </div>
-
-              <div className="library-repo-form-group">
-                <label htmlFor="upload-keywords">Keywords (Comma-separated)</label>
-                <input
-                  id="upload-keywords"
-                  type="text"
-                  placeholder="e.g. Automation, Renewable Energy, Sensors"
-                  value={uploadForm.keywords}
-                  onChange={(e) => setUploadForm({ ...uploadForm, keywords: e.target.value })}
-                  className="library-repo-form-input"
-                />
-              </div>
-            </div>
-
-            {/* Dropzone */}
-            <div style={{ gridColumn: '1 / -1' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '0.4rem' }}>
-                Manuscript Documents
-              </label>
-              <div className="library-repo-dropzone">
-                <div className="library-repo-dropzone-icon">
-                  <i className="fas fa-file-pdf" aria-hidden="true" />
-                </div>
-                <div>
-                  <strong style={{ color: '#003A8F', fontSize: '1.05rem', display: 'block', marginBottom: '0.2rem' }}>
-                    Choose manuscript files or drag & drop here
-                  </strong>
-                  <span style={{ color: '#64748B', fontSize: '0.85rem' }}>
-                    Upload final signed PDF manuscript, defense presentation, or dataset archives
-                  </span>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </form>
-      </LibraryModal>
 
     </LibraryShell>
   );

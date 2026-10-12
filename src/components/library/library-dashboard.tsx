@@ -24,6 +24,7 @@ import {
   LIBRARY_KEYWORD_TRENDS,
   LIBRARY_PROJECTS,
   LIBRARY_RECOMMENDED_READING,
+  LIBRARIAN_PICKS_OF_THE_MONTH,
   type LibraryDepartment
 } from '@/components/library/library-data';
 import { LibraryShell } from '@/components/library/library-shell';
@@ -858,6 +859,35 @@ export function LibraryDashboard() {
     window.setTimeout(() => setToast(null), 3200);
   };
 
+  // Librarian's Pick of the Month State & Handlers
+  const [currentPickIndex, setCurrentPickIndex] = useState(0);
+  const [showcaseCollapsed, setShowcaseCollapsed] = useState(false);
+
+  const currentPick = useMemo(() => {
+    return LIBRARIAN_PICKS_OF_THE_MONTH[currentPickIndex] ?? LIBRARIAN_PICKS_OF_THE_MONTH[0];
+  }, [currentPickIndex]);
+
+  const featuredPickProject = useMemo(() => {
+    return LIBRARY_PROJECTS.find((p) => p.id === currentPick.projectId) ?? LIBRARY_PROJECTS[0];
+  }, [currentPick]);
+
+  const handlePrevPick = () => {
+    setCurrentPickIndex((prev) => (prev === 0 ? LIBRARIAN_PICKS_OF_THE_MONTH.length - 1 : prev - 1));
+  };
+
+  const handleNextPick = () => {
+    setCurrentPickIndex((prev) => (prev === LIBRARIAN_PICKS_OF_THE_MONTH.length - 1 ? 0 : prev + 1));
+  };
+
+  const handleCopyCitation = () => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(currentPick.citationText);
+      showToast('Academic citation copied to clipboard.', 'success');
+    } else {
+      showToast('Academic citation copied to clipboard.', 'success');
+    }
+  };
+
   const selectedDepartment = LIBRARY_DEPT_DETAILS.find((dept) => dept.id === deptFilter) ?? null;
   const filteredDepartments = selectedDepartment ? [selectedDepartment] : LIBRARY_DEPT_DETAILS;
 
@@ -1184,6 +1214,149 @@ export function LibraryDashboard() {
               </button>
             </div>
           </header>
+
+          {/* Librarian's Pick of the Month Showcase Banner */}
+          <section aria-label="Librarian's Pick of the Month" className="library-pick-showcase-card">
+            <div className="library-pick-bg-decoration" />
+            <i aria-hidden="true" className="fas fa-crown library-pick-bg-icon" />
+
+            <div className="library-pick-content">
+              {/* Header row with badges and monthly switcher */}
+              <div className="library-pick-header-row">
+                <div className="library-pick-badge-group">
+                  <span className="library-pick-crown-badge">
+                    <i className="fas fa-crown" />
+                    Librarian&apos;s Pick
+                  </span>
+                  <span className="library-pick-impact-badge">
+                    <i className="fas fa-certificate" />
+                    {currentPick.impactTag}
+                  </span>
+                  <span className="library-pick-month-pill">
+                    <i className="fas fa-calendar-alt" />
+                    {currentPick.month} {currentPick.year}
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ fontSize: '0.78rem', color: '#CBD5E1', fontWeight: 600 }}>
+                    {currentPickIndex + 1} of {LIBRARIAN_PICKS_OF_THE_MONTH.length}
+                  </span>
+                  <button
+                    type="button"
+                    className="library-pick-cycle-btn"
+                    onClick={handlePrevPick}
+                    title="Previous Featured Pick"
+                    aria-label="Previous Featured Pick"
+                  >
+                    <i className="fas fa-chevron-left" />
+                  </button>
+                  <button
+                    type="button"
+                    className="library-pick-cycle-btn"
+                    onClick={handleNextPick}
+                    title="Next Featured Pick"
+                    aria-label="Next Featured Pick"
+                  >
+                    <i className="fas fa-chevron-right" />
+                  </button>
+                  <button
+                    type="button"
+                    className="library-pick-cycle-btn"
+                    onClick={() => setShowcaseCollapsed((prev) => !prev)}
+                    title={showcaseCollapsed ? 'Expand Spotlight Details' : 'Collapse Spotlight'}
+                    aria-label={showcaseCollapsed ? 'Expand Spotlight Details' : 'Collapse Spotlight'}
+                    style={{ marginLeft: '0.25rem' }}
+                  >
+                    <i className={`fas ${showcaseCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'}`} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Title & Lead Meta */}
+              <div>
+                <h2 className="library-pick-title">{featuredPickProject.title}</h2>
+                <div className="library-pick-meta-row" style={{ marginTop: '0.55rem' }}>
+                  <span className="library-pick-meta-item">
+                    <i className="fas fa-user-edit" style={{ color: '#F6BE00' }} />
+                    <span><strong>Lead Authors:</strong> {featuredPickProject.authorsShort || featuredPickProject.authors?.join(', ')}</span>
+                  </span>
+                  <span className="library-pick-meta-item">
+                    <i className="fas fa-building-columns" style={{ color: '#60A5FA' }} />
+                    <span><strong>Dept:</strong> {featuredPickProject.department}</span>
+                  </span>
+                  <span className="library-pick-meta-item">
+                    <i className="fas fa-user-tie" style={{ color: '#34D399' }} />
+                    <span><strong>Adviser:</strong> {featuredPickProject.adviser}</span>
+                  </span>
+                  <span className="library-pick-meta-item">
+                    <i className="fas fa-tag" style={{ color: '#F472B6' }} />
+                    <span><strong>Type:</strong> {featuredPickProject.type}</span>
+                  </span>
+                </div>
+              </div>
+
+              {!showcaseCollapsed && (
+                <>
+                  {/* Spotlight Curatorial Endorsement Quote */}
+                  <div className="library-pick-quote-box">
+                    <i className="fas fa-quote-left" style={{ marginRight: '0.5rem', opacity: 0.6 }} />
+                    {currentPick.reason}
+                  </div>
+
+                  {/* Impact & Metric Badges */}
+                  <div className="library-pick-metrics-grid">
+                    {currentPick.impactMetrics.map((metric) => (
+                      <div key={metric.label} className="library-pick-metric-card">
+                        <span className="library-pick-metric-val">
+                          <i className={`fas ${metric.icon}`} style={{ color: '#F6BE00', fontSize: '0.9rem' }} />
+                          {metric.value}
+                        </span>
+                        <span className="library-pick-metric-lbl">{metric.label}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Action Buttons Row */}
+                  <div className="library-pick-actions-row">
+                    <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+                      <Link
+                        href={`/library/project-details?id=${featuredPickProject.id}`}
+                        className="library-pick-action-btn-primary"
+                      >
+                        <i className="fas fa-book-open" />
+                        Read Full Manuscript
+                      </Link>
+
+                      <button
+                        type="button"
+                        onClick={handleCopyCitation}
+                        className="library-pick-action-btn-secondary"
+                        title="Copy official academic citation"
+                      >
+                        <i className="fas fa-quote-right" />
+                        Copy Academic Citation
+                      </button>
+
+                      <Link
+                        href="/library/engagement"
+                        className="library-pick-action-btn-secondary"
+                        title="View reader feedback and community queries"
+                      >
+                        <i className="fas fa-comments" />
+                        Reader Discussions
+                      </Link>
+                    </div>
+
+                    <div style={{ fontSize: '0.78rem', color: '#CBD5E1', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <i className="fas fa-shield-halved" style={{ color: '#10B981' }} />
+                      Verified Archival Capstone Record
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </section>
 
           {/* KPI Metrics Row */}
           <section
