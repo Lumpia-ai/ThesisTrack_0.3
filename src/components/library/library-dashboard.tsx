@@ -859,34 +859,8 @@ export function LibraryDashboard() {
     window.setTimeout(() => setToast(null), 3200);
   };
 
-  // Librarian's Pick of the Month State & Handlers
-  const [currentPickIndex, setCurrentPickIndex] = useState(0);
+  // Most Watched Article Spotlight State & Handlers
   const [showcaseCollapsed, setShowcaseCollapsed] = useState(false);
-
-  const currentPick = useMemo(() => {
-    return LIBRARIAN_PICKS_OF_THE_MONTH[currentPickIndex] ?? LIBRARIAN_PICKS_OF_THE_MONTH[0];
-  }, [currentPickIndex]);
-
-  const featuredPickProject = useMemo(() => {
-    return LIBRARY_PROJECTS.find((p) => p.id === currentPick.projectId) ?? LIBRARY_PROJECTS[0];
-  }, [currentPick]);
-
-  const handlePrevPick = () => {
-    setCurrentPickIndex((prev) => (prev === 0 ? LIBRARIAN_PICKS_OF_THE_MONTH.length - 1 : prev - 1));
-  };
-
-  const handleNextPick = () => {
-    setCurrentPickIndex((prev) => (prev === LIBRARIAN_PICKS_OF_THE_MONTH.length - 1 ? 0 : prev + 1));
-  };
-
-  const handleCopyCitation = () => {
-    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(currentPick.citationText);
-      showToast('Academic citation copied to clipboard.', 'success');
-    } else {
-      showToast('Academic citation copied to clipboard.', 'success');
-    }
-  };
 
   const selectedDepartment = LIBRARY_DEPT_DETAILS.find((dept) => dept.id === deptFilter) ?? null;
   const filteredDepartments = selectedDepartment ? [selectedDepartment] : LIBRARY_DEPT_DETAILS;
@@ -897,6 +871,21 @@ export function LibraryDashboard() {
     const filtered = TOP_WATCHED_ARTICLES.filter((a) => a.department === selectedDepartment.id);
     return filtered.length > 0 ? filtered : TOP_WATCHED_ARTICLES;
   }, [selectedDepartment]);
+
+  // Single Top Most Watched Article ("only out just one")
+  const topWatchedArticle = useMemo(() => {
+    return availableWatchedArticles[0] ?? TOP_WATCHED_ARTICLES[0];
+  }, [availableWatchedArticles]);
+
+  const handleCopyCitation = () => {
+    const citationText = `${topWatchedArticle.authors} (${topWatchedArticle.year}). ${topWatchedArticle.title}. Institutional Research Repository, Department of ${topWatchedArticle.department}.`;
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(citationText);
+      showToast('Academic citation copied to clipboard.', 'success');
+    } else {
+      showToast('Academic citation copied to clipboard.', 'success');
+    }
+  };
 
   // Selected Most Watched Article data
   const currentWatchedArticle = useMemo(() => {
@@ -1215,58 +1204,43 @@ export function LibraryDashboard() {
             </div>
           </header>
 
-          {/* Librarian's Pick of the Month Showcase Banner */}
-          <section aria-label="Librarian's Pick of the Month" className="library-pick-showcase-card">
+          {/* Most Watched Article & Reviewing Departments Spotlight Banner (Single Top Study) */}
+          <section aria-label="Most Watched Article & Reviewing Departments" className="library-pick-showcase-card">
             <div className="library-pick-bg-decoration" />
-            <i aria-hidden="true" className="fas fa-crown library-pick-bg-icon" />
+            <i aria-hidden="true" className="fas fa-fire library-pick-bg-icon" />
 
             <div className="library-pick-content">
-              {/* Header row with badges and monthly switcher */}
+              {/* Header row with badges */}
               <div className="library-pick-header-row">
                 <div className="library-pick-badge-group">
                   <span className="library-pick-crown-badge">
                     <i className="fas fa-crown" />
-                    Librarian&apos;s Pick
+                    {selectedDepartment ? `Most Watched · ${selectedDepartment.shortLabel}` : 'Most Watched Article'}
                   </span>
                   <span className="library-pick-impact-badge">
-                    <i className="fas fa-certificate" />
-                    {currentPick.impactTag}
+                    <i className="fas fa-eye" />
+                    {topWatchedArticle.totalViews.toLocaleString()} Watches
+                  </span>
+                  <span className="library-pick-month-pill">
+                    <i className="fas fa-clipboard-check" />
+                    {topWatchedArticle.reviewCount} Department Reviews
                   </span>
                   <span className="library-pick-month-pill">
                     <i className="fas fa-calendar-alt" />
-                    {currentPick.month} {currentPick.year}
+                    AY {topWatchedArticle.year}
                   </span>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ fontSize: '0.78rem', color: '#CBD5E1', fontWeight: 600 }}>
-                    {currentPickIndex + 1} of {LIBRARIAN_PICKS_OF_THE_MONTH.length}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                  <span style={{ fontSize: '0.78rem', color: '#CBD5E1', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                    Rank #1 Most Watched
                   </span>
-                  <button
-                    type="button"
-                    className="library-pick-cycle-btn"
-                    onClick={handlePrevPick}
-                    title="Previous Featured Pick"
-                    aria-label="Previous Featured Pick"
-                  >
-                    <i className="fas fa-chevron-left" />
-                  </button>
-                  <button
-                    type="button"
-                    className="library-pick-cycle-btn"
-                    onClick={handleNextPick}
-                    title="Next Featured Pick"
-                    aria-label="Next Featured Pick"
-                  >
-                    <i className="fas fa-chevron-right" />
-                  </button>
                   <button
                     type="button"
                     className="library-pick-cycle-btn"
                     onClick={() => setShowcaseCollapsed((prev) => !prev)}
-                    title={showcaseCollapsed ? 'Expand Spotlight Details' : 'Collapse Spotlight'}
-                    aria-label={showcaseCollapsed ? 'Expand Spotlight Details' : 'Collapse Spotlight'}
-                    style={{ marginLeft: '0.25rem' }}
+                    title={showcaseCollapsed ? 'Expand Reviewing Departments' : 'Collapse Details'}
+                    aria-label={showcaseCollapsed ? 'Expand Reviewing Departments' : 'Collapse Details'}
                   >
                     <i className={`fas ${showcaseCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'}`} />
                   </button>
@@ -1275,53 +1249,124 @@ export function LibraryDashboard() {
 
               {/* Title & Lead Meta */}
               <div>
-                <h2 className="library-pick-title">{featuredPickProject.title}</h2>
+                <h2 className="library-pick-title">{topWatchedArticle.title}</h2>
                 <div className="library-pick-meta-row" style={{ marginTop: '0.55rem' }}>
                   <span className="library-pick-meta-item">
                     <i className="fas fa-user-edit" style={{ color: '#F6BE00' }} />
-                    <span><strong>Lead Authors:</strong> {featuredPickProject.authorsShort || featuredPickProject.authors?.join(', ')}</span>
+                    <span><strong>Lead Authors:</strong> {topWatchedArticle.authors}</span>
                   </span>
                   <span className="library-pick-meta-item">
                     <i className="fas fa-building-columns" style={{ color: '#60A5FA' }} />
-                    <span><strong>Dept:</strong> {featuredPickProject.department}</span>
+                    <span><strong>Dept:</strong> {topWatchedArticle.department}</span>
                   </span>
                   <span className="library-pick-meta-item">
                     <i className="fas fa-user-tie" style={{ color: '#34D399' }} />
-                    <span><strong>Adviser:</strong> {featuredPickProject.adviser}</span>
+                    <span><strong>Adviser:</strong> {topWatchedArticle.adviser}</span>
                   </span>
                   <span className="library-pick-meta-item">
                     <i className="fas fa-tag" style={{ color: '#F472B6' }} />
-                    <span><strong>Type:</strong> {featuredPickProject.type}</span>
+                    <span><strong>Type:</strong> {topWatchedArticle.type}</span>
                   </span>
                 </div>
               </div>
 
               {!showcaseCollapsed && (
                 <>
-                  {/* Spotlight Curatorial Endorsement Quote */}
-                  <div className="library-pick-quote-box">
-                    <i className="fas fa-quote-left" style={{ marginRight: '0.5rem', opacity: 0.6 }} />
-                    {currentPick.reason}
-                  </div>
-
-                  {/* Impact & Metric Badges */}
-                  <div className="library-pick-metrics-grid">
-                    {currentPick.impactMetrics.map((metric) => (
-                      <div key={metric.label} className="library-pick-metric-card">
-                        <span className="library-pick-metric-val">
-                          <i className={`fas ${metric.icon}`} style={{ color: '#F6BE00', fontSize: '0.9rem' }} />
-                          {metric.value}
-                        </span>
-                        <span className="library-pick-metric-lbl">{metric.label}</span>
+                  {/* Reviewing Departments Breakdown inside Banner */}
+                  <div
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.08)',
+                      backdropFilter: 'blur(10px)',
+                      border: '1px solid rgba(255, 255, 255, 0.16)',
+                      borderRadius: '0.85rem',
+                      padding: '1rem 1.25rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.75rem'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <i className="fas fa-users-viewfinder" style={{ color: '#F6BE00', fontSize: '1rem' }} />
+                        <strong style={{ fontSize: '0.84rem', color: '#FFFFFF', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                          Reviewing Departments Breakdown
+                        </strong>
                       </div>
-                    ))}
+                      <span style={{ fontSize: '0.76rem', color: '#CBD5E1' }}>
+                        Total <strong>{topWatchedArticle.reviewCount}</strong> reviews recorded · <strong>{(100 - (topWatchedArticle.reviewingDepartments.find((d) => d.deptId === topWatchedArticle.department)?.percentage ?? topWatchedArticle.reviewingDepartments[0].percentage)).toFixed(1)}%</strong> cross-department reach
+                      </span>
+                    </div>
+
+                    {/* Multi-segment Color Progress Bar */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        height: '10px',
+                        width: '100%',
+                        borderRadius: '5px',
+                        overflow: 'hidden',
+                        background: 'rgba(255, 255, 255, 0.18)'
+                      }}
+                    >
+                      {topWatchedArticle.reviewingDepartments.map((item) => (
+                        <div
+                          key={item.deptId}
+                          style={{
+                            width: `${item.percentage}%`,
+                            background: item.color,
+                            transition: 'width 0.3s ease'
+                          }}
+                          title={`${item.shortLabel}: ${item.reviews} reviews (${item.percentage}%)`}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Department Reviewers Badges / Cards */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.55rem' }}>
+                      {topWatchedArticle.reviewingDepartments.map((item) => (
+                        <div
+                          key={item.deptId}
+                          style={{
+                            background: 'rgba(0, 0, 0, 0.22)',
+                            border: '1px solid rgba(255, 255, 255, 0.12)',
+                            borderRadius: '0.55rem',
+                            padding: '0.55rem 0.75rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '0.5rem'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                            <span
+                              style={{
+                                width: '9px',
+                                height: '9px',
+                                borderRadius: '50%',
+                                background: item.color,
+                                display: 'inline-block'
+                              }}
+                            />
+                            <strong style={{ fontSize: '0.8rem', color: '#FFFFFF' }}>{item.shortLabel}</strong>
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#FDE68A', display: 'block', lineHeight: 1.1 }}>
+                              {item.percentage}%
+                            </span>
+                            <span style={{ fontSize: '0.68rem', color: '#CBD5E1' }}>
+                              {item.reviews} reviews
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
                   {/* Action Buttons Row */}
                   <div className="library-pick-actions-row">
                     <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
                       <Link
-                        href={`/library/project-details?id=${featuredPickProject.id}`}
+                        href={`/library/project-details?id=${topWatchedArticle.id}`}
                         className="library-pick-action-btn-primary"
                       >
                         <i className="fas fa-book-open" />
@@ -1339,12 +1384,12 @@ export function LibraryDashboard() {
                       </button>
 
                       <Link
-                        href="/library/engagement"
+                        href="/library/repository"
                         className="library-pick-action-btn-secondary"
-                        title="View reader feedback and community queries"
+                        title="View within Institutional Repository Catalog"
                       >
-                        <i className="fas fa-comments" />
-                        Reader Discussions
+                        <i className="fas fa-folder-open" />
+                        Repository Catalog
                       </Link>
                     </div>
 
@@ -1403,259 +1448,9 @@ export function LibraryDashboard() {
           </section>
 
           {/* ========================================================================= */}
-          {/* USER FEATURE: MOST WATCHED ARTICLE & WHO DEPARTMENTS REVIEW IT */}
-          {/* & OVERALL DEPARTMENT VIEW: WHO FREQUENTLY REVIEWS ARTICLES */}
+          {/* OVERALL DEPARTMENT REVIEW ACTIVITY & FREQUENCY BENCHMARKS */}
           {/* ========================================================================= */}
-          <section className="rh-dash-grid rh-dash-grid--2" id="article-engagement-analytics">
-            {/* PART 1: MOST WATCHED ARTICLE & WHO DEPARTMENTS REVIEW IT */}
-            <div
-              className="admin-section-card dashboard-card"
-              style={{
-                borderRadius: '0.85rem',
-                border: '1px solid var(--border)',
-                background: 'var(--surface)',
-                display: 'flex',
-                flexDirection: 'column'
-              }}
-            >
-              <div className="admin-section-head dashboard-card-head" style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--border)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: '0.75rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                    <span
-                      style={{
-                        width: '2.2rem',
-                        height: '2.2rem',
-                        borderRadius: '0.65rem',
-                        background: 'rgba(245, 158, 11, 0.16)',
-                        color: '#D97706',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '1rem'
-                      }}
-                    >
-                      <i className="fas fa-crown" />
-                    </span>
-                    <div>
-                      <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: 'var(--text)' }}>
-                        {selectedDepartment ? `Most Watched ${selectedDepartment.shortLabel} Article & Reviewing Departments` : 'Most Watched Article & Reviewing Departments'}
-                      </h3>
-                      <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--muted)' }}>
-                        {selectedDepartment ? `Examine readership and see which college departments review ${selectedDepartment.shortLabel}'s leading research` : 'Examine readership, watch counts, and which college departments review it'}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Switcher for top watched articles */}
-                  <select
-                    aria-label="Select watched article"
-                    className="rh-dash-select"
-                    style={{
-                      height: '2.25rem',
-                      fontSize: '0.8rem',
-                      minWidth: '220px',
-                      maxWidth: '290px',
-                      borderRadius: '0.55rem',
-                      border: '1px solid var(--border)',
-                      background: 'var(--surface)',
-                      color: 'var(--text)',
-                      fontWeight: 600,
-                      cursor: 'pointer'
-                    }}
-                    value={currentWatchedArticle.id}
-                    onChange={(e) => {
-                      const id = Number(e.target.value);
-                      setSelectedWatchedArticleId(id);
-                      const art = availableWatchedArticles.find((a) => a.id === id);
-                      if (art) showToast(`Viewing readership breakdown for "${art.title.slice(0, 28)}..."`);
-                    }}
-                  >
-                    {availableWatchedArticles.map((art, idx) => (
-                      <option key={art.id} value={art.id}>
-                        #{idx + 1} {art.title.slice(0, 32)}... ({art.totalViews.toLocaleString()} views)
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="admin-section-body dashboard-card-body" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', flex: 1 }}>
-                {/* Article Snapshot Banner */}
-                <div
-                  style={{
-                    background: 'var(--bg)',
-                    borderRadius: '0.75rem',
-                    padding: '1.15rem',
-                    border: '1px solid var(--border)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.75rem'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.6rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      <DepartmentBadge department={currentWatchedArticle.department} />
-                      <span
-                        style={{
-                          background: 'rgba(0, 58, 143, 0.08)',
-                          color: CHART_COLORS.primary,
-                          padding: '0.2rem 0.6rem',
-                          borderRadius: '999px',
-                          fontSize: '0.72rem',
-                          fontWeight: 700
-                        }}
-                      >
-                        {currentWatchedArticle.type}
-                      </span>
-                      <span style={{ fontSize: '0.74rem', color: 'var(--muted)', fontWeight: 600 }}>
-                        AY {currentWatchedArticle.year}
-                      </span>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                      <span
-                        style={{
-                          background: 'rgba(0, 58, 143, 0.08)',
-                          color: CHART_COLORS.primary,
-                          padding: '0.22rem 0.6rem',
-                          borderRadius: '999px',
-                          fontWeight: 800,
-                          fontSize: '0.78rem',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '0.35rem'
-                        }}
-                      >
-                        <i className="fas fa-eye" />
-                        {currentWatchedArticle.totalViews.toLocaleString()} Watches
-                      </span>
-                      <span
-                        style={{
-                          background: 'rgba(16, 185, 129, 0.12)',
-                          color: '#059669',
-                          padding: '0.22rem 0.6rem',
-                          borderRadius: '999px',
-                          fontWeight: 800,
-                          fontSize: '0.78rem',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '0.35rem'
-                        }}
-                      >
-                        <i className="fas fa-clipboard-check" />
-                        {currentWatchedArticle.reviewCount} Reviews
-                      </span>
-                    </div>
-                  </div>
-
-                  <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: 'var(--text)', lineHeight: 1.35 }}>
-                    {currentWatchedArticle.title}
-                  </h4>
-
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--muted)', flexWrap: 'wrap', gap: '0.5rem' }}>
-                    <span><strong>Authors:</strong> {currentWatchedArticle.authors}</span>
-                    <span><strong>Adviser:</strong> {currentWatchedArticle.adviser}</span>
-                  </div>
-                </div>
-
-                {/* Who Departments Review It Breakdown */}
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
-                    <strong style={{ fontSize: '0.84rem', color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                      Who Departments Review This Article:
-                    </strong>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
-                      Total {currentWatchedArticle.reviewCount} reviews recorded
-                    </span>
-                  </div>
-
-                  {/* Multi-segment Color Bar */}
-                  <div style={{ display: 'flex', height: '10px', width: '100%', borderRadius: '5px', overflow: 'hidden', marginBottom: '1rem', background: 'var(--border, #E2E8F0)' }}>
-                    {currentWatchedArticle.reviewingDepartments.map((item) => (
-                      <div
-                        key={item.deptId}
-                        style={{
-                          width: `${item.percentage}%`,
-                          background: item.color,
-                          transition: 'width 0.3s ease'
-                        }}
-                        title={`${item.shortLabel}: ${item.reviews} reviews (${item.percentage}%)`}
-                      />
-                    ))}
-                  </div>
-
-                  {/* List of reviewing departments with count & progress meters */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
-                    {currentWatchedArticle.reviewingDepartments.map((item) => (
-                      <div
-                        key={item.deptId}
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: '100px 1fr 85px 48px',
-                          alignItems: 'center',
-                          gap: '0.75rem',
-                          padding: '0.45rem 0.65rem',
-                          borderRadius: '0.55rem',
-                          background: 'var(--bg)',
-                          border: '1px solid var(--border)',
-                          fontSize: '0.8rem'
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                          <DepartmentBadge department={item.deptId} label={item.shortLabel} style={{ fontSize: '0.7rem', padding: '0.18rem 0.48rem' }} />
-                        </div>
-
-                        <div style={{ width: '100%', height: '6px', background: 'rgba(226, 232, 240, 0.8)', borderRadius: '3px', overflow: 'hidden' }}>
-                          <div
-                            style={{
-                              width: `${item.percentage}%`,
-                              height: '100%',
-                              background: item.color,
-                              borderRadius: '3px'
-                            }}
-                          />
-                        </div>
-
-                        <span style={{ textAlign: 'right', fontWeight: 700, color: 'var(--text)', fontVariantNumeric: 'tabular-nums' }}>
-                          {item.reviews} reviews
-                        </span>
-
-                        <span style={{ textAlign: 'right', fontWeight: 800, color: 'var(--muted)', fontSize: '0.75rem', fontVariantNumeric: 'tabular-nums' }}>
-                          {item.percentage}%
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Insight Callout */}
-                <div
-                  style={{
-                    marginTop: 'auto',
-                    padding: '0.85rem 1rem',
-                    borderRadius: '0.65rem',
-                    background: 'rgba(0, 58, 143, 0.04)',
-                    border: '1px solid rgba(0, 58, 143, 0.12)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '0.75rem',
-                    flexWrap: 'wrap'
-                  }}
-                >
-                  <span style={{ fontSize: '0.78rem', color: 'var(--text)' }}>
-                    <i className="fas fa-lightbulb" style={{ color: CHART_COLORS.gold, marginRight: '0.45rem' }} />
-                    Cross-Department Reach: <strong>{(100 - (currentWatchedArticle.reviewingDepartments.find((d) => d.deptId === currentWatchedArticle.department)?.percentage ?? currentWatchedArticle.reviewingDepartments[0].percentage)).toFixed(1)}%</strong> of reviews came from departments outside {getDepartmentTheme(currentWatchedArticle.department).shortLabel} ({getDepartmentTheme(currentWatchedArticle.department).name}).
-                  </span>
-                  <Link
-                    className="btn btn-outline rh-dash-btn rh-dash-btn--sm"
-                    href={`/library/project-details?id=${currentWatchedArticle.id}`}
-                  >
-                    View Study <i className="fas fa-angle-right" style={{ marginLeft: '0.2rem' }} />
-                  </Link>
-                </div>
-              </div>
-            </div>
+          <section id="article-engagement-analytics" style={{ width: '100%' }}>
 
             {/* PART 2: OVERALL DEPARTMENT VIEW - WHO FREQUENTLY REVIEWS ARTICLES */}
             <div

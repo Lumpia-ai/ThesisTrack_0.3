@@ -519,7 +519,14 @@ export function LibraryEngagement() {
     return map;
   }, [comments]);
 
-  // Filtered studies
+  // Left Sidebar: Thesis Comment Status Filter, Sorting, Search & Pagination
+  const [studyFilterStatus, setStudyFilterStatus] = useState<'all' | 'needs-reply' | 'has-comments'>('all');
+  const [studySortOrder, setStudySortOrder] = useState<'needs-reply-first' | 'most-comments' | 'most-views' | 'title-asc'>('needs-reply-first');
+  const [studySearch, setStudySearch] = useState('');
+  const [studyPage, setStudyPage] = useState(1);
+  const studyPageSize = 8;
+
+  // Filtered studies based on top controls
   const filteredStudies = useMemo(() => {
     return LIBRARY_PROJECTS.filter((project) => {
       if (departmentFilter !== 'all' && project.department !== departmentFilter) {
@@ -549,14 +556,88 @@ export function LibraryEngagement() {
     });
   }, [departmentFilter, hasCommentsOnly, searchQuery, commentsByProject]);
 
+  // Counts for the left column quick status tabs
+  const studyNeedsReplyCount = useMemo(() => {
+    return filteredStudies.filter((study) => {
+      const studyComments = commentsByProject.get(study.id) || [];
+      return studyComments.some((c) => !c.librarianReply);
+    }).length;
+  }, [filteredStudies, commentsByProject]);
+
+  const studyWithCommentsCount = useMemo(() => {
+    return filteredStudies.filter((study) => {
+      const studyComments = commentsByProject.get(study.id) || [];
+      return studyComments.length > 0;
+    }).length;
+  }, [filteredStudies, commentsByProject]);
+
+  // Processed studies (filtered by status and local quick search, then sorted)
+  const processedStudies = useMemo(() => {
+    let result = [...filteredStudies];
+
+    if (studyFilterStatus === 'needs-reply') {
+      result = result.filter((study) => {
+        const studyComments = commentsByProject.get(study.id) || [];
+        return studyComments.some((c) => !c.librarianReply);
+      });
+    } else if (studyFilterStatus === 'has-comments') {
+      result = result.filter((study) => {
+        const studyComments = commentsByProject.get(study.id) || [];
+        return studyComments.length > 0;
+      });
+    }
+
+    const q = studySearch.trim().toLowerCase();
+    if (q) {
+      result = result.filter((study) =>
+        study.title.toLowerCase().includes(q) ||
+        study.authors.join(' ').toLowerCase().includes(q) ||
+        study.adviser.toLowerCase().includes(q) ||
+        study.department.toLowerCase().includes(q)
+      );
+    }
+
+    result.sort((a, b) => {
+      const aComments = commentsByProject.get(a.id) || [];
+      const bComments = commentsByProject.get(b.id) || [];
+      const aUnanswered = aComments.filter((c) => !c.librarianReply).length;
+      const bUnanswered = bComments.filter((c) => !c.librarianReply).length;
+
+      if (studySortOrder === 'needs-reply-first') {
+        if (bUnanswered !== aUnanswered) return bUnanswered - aUnanswered;
+        if (bComments.length !== aComments.length) return bComments.length - aComments.length;
+        return b.views - a.views;
+      }
+      if (studySortOrder === 'most-comments') {
+        if (bComments.length !== aComments.length) return bComments.length - aComments.length;
+        return b.views - a.views;
+      }
+      if (studySortOrder === 'most-views') {
+        return b.views - a.views;
+      }
+      if (studySortOrder === 'title-asc') {
+        return a.title.localeCompare(b.title);
+      }
+      return 0;
+    });
+
+    return result;
+  }, [filteredStudies, studyFilterStatus, studySearch, studySortOrder, commentsByProject]);
+
+  const studyTotalPages = Math.max(1, Math.ceil(processedStudies.length / studyPageSize));
+  const paginatedStudies = useMemo(() => {
+    const startIndex = (studyPage - 1) * studyPageSize;
+    return processedStudies.slice(startIndex, startIndex + studyPageSize);
+  }, [processedStudies, studyPage, studyPageSize]);
+
   // Active study selected
   const activeStudy = useMemo(() => {
-    return (
-      LIBRARY_PROJECTS.find((p) => p.id === activeStudyId) ||
-      filteredStudies[0] ||
-      LIBRARY_PROJECTS[0]
-    );
-  }, [activeStudyId, filteredStudies]);
+    const match = LIBRARY_PROJECTS.find((p) => p.id === activeStudyId);
+    if (match && processedStudies.some((p) => p.id === activeStudyId)) {
+      return match;
+    }
+    return processedStudies[0] || match || LIBRARY_PROJECTS[0];
+  }, [activeStudyId, processedStudies]);
 
   // Raw comments for active study (filtered by viewerRoleFilter if set)
   const activeStudyRawComments = useMemo(() => {
@@ -829,86 +910,221 @@ export function LibraryEngagement() {
         {viewTab === 'study-hub' ? (
           <div className="library-engagement-split">
 
-            {/* Left Column: Published & Finished Research Studies */}
+            {/* Left Column: Published & Finished Research Studies Sidebar */}
             <div className="library-engagement-list-col">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 0.25rem' }}>
-                <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Published Research ({filteredStudies.length})
-                </span>
-                <span style={{ fontSize: '0.8rem', color: '#64748B' }}>
-                  Select to see viewer comments
-                </span>
-              </div>
+              {/* Pinned Header */}
+              <div className="library-engagement-sidebar-header">
+                <div className="library-engagement-sidebar-title-row">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                    <span className="library-engagement-sidebar-title">Published Studies</span>
+                    <span className="library-engagement-sidebar-badge">{processedStudies.length}</span>
+                  </div>
 
-              {filteredStudies.length === 0 ? (
-                <div className="library-browse-empty-state" style={{ padding: '3rem 1.5rem' }}>
-                  <i className="fas fa-search" style={{ fontSize: '2rem', color: '#94A3B8' }} aria-hidden="true" />
-                  <p style={{ margin: 0, fontWeight: 700, color: '#0F172A' }}>No matching published studies</p>
+                  <select
+                    value={studySortOrder}
+                    onChange={(e) => {
+                      setStudySortOrder(e.target.value as any);
+                      setStudyPage(1);
+                    }}
+                    className="library-engagement-sort-select"
+                    aria-label="Sort research studies list"
+                  >
+                    <option value="needs-reply-first">Needs Reply First</option>
+                    <option value="most-comments">Most Comments</option>
+                    <option value="most-views">Most Reads</option>
+                    <option value="title-asc">Title (A–Z)</option>
+                  </select>
+                </div>
+
+                {/* Quick Search inside Sidebar */}
+                <div className="library-engagement-sidebar-search">
+                  <i className="fas fa-search" aria-hidden="true" />
+                  <input
+                    type="text"
+                    placeholder="Quick jump / search study..."
+                    value={studySearch}
+                    onChange={(e) => {
+                      setStudySearch(e.target.value);
+                      setStudyPage(1);
+                    }}
+                    aria-label="Quick search studies in list"
+                  />
+                  {studySearch && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStudySearch('');
+                        setStudyPage(1);
+                      }}
+                      aria-label="Clear study search"
+                    >
+                      <i className="fas fa-times" aria-hidden="true" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Quick Status Filter Tabs (Segmented Control style) */}
+                <div className="library-engagement-status-pills" role="tablist" aria-label="Thesis comment status filter">
                   <button
                     type="button"
-                    className="library-active-chip-clear-all"
+                    role="tab"
+                    aria-selected={studyFilterStatus === 'all'}
+                    className={`library-status-pill-btn ${studyFilterStatus === 'all' ? 'is-active' : ''}`}
                     onClick={() => {
-                      setSearchQuery('');
-                      setDepartmentFilter('all');
-                      setHasCommentsOnly(false);
-                      setViewerRoleFilter('all');
+                      setStudyFilterStatus('all');
+                      setStudyPage(1);
                     }}
                   >
-                    Reset Filters
+                    <span>All</span>
+                    <span className="library-status-pill-count">{filteredStudies.length}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={studyFilterStatus === 'needs-reply'}
+                    className={`library-status-pill-btn is-amber ${studyFilterStatus === 'needs-reply' ? 'is-active' : ''}`}
+                    onClick={() => {
+                      setStudyFilterStatus('needs-reply');
+                      setStudyPage(1);
+                    }}
+                    title="Filter only studies with unanswered reader inquiries"
+                  >
+                    <i className="fas fa-bell" aria-hidden="true" />
+                    <span>Needs Reply</span>
+                    <span className="library-status-pill-count">{studyNeedsReplyCount}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={studyFilterStatus === 'has-comments'}
+                    className={`library-status-pill-btn ${studyFilterStatus === 'has-comments' ? 'is-active' : ''}`}
+                    onClick={() => {
+                      setStudyFilterStatus('has-comments');
+                      setStudyPage(1);
+                    }}
+                    title="Filter only studies with viewer comments"
+                  >
+                    <i className="fas fa-comments" aria-hidden="true" />
+                    <span>With Comments</span>
+                    <span className="library-status-pill-count">{studyWithCommentsCount}</span>
                   </button>
                 </div>
-              ) : (
-                filteredStudies.map((study) => {
-                  const isSelected = study.id === activeStudy.id;
-                  const studyComments = commentsByProject.get(study.id) || [];
-                  const deptPillClass = getDeptPillClass(study.department);
+              </div>
 
-                  return (
-                    <article
-                      key={study.id}
-                      className={`library-engagement-study-item ${isSelected ? 'is-selected' : ''}`}
-                      onClick={() => setActiveStudyId(study.id)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          setActiveStudyId(study.id);
-                        }
+              {/* Scrollable Studies List */}
+              <div className="library-engagement-sidebar-scroll">
+                {processedStudies.length === 0 ? (
+                  <div className="library-engagement-sidebar-empty">
+                    <i className="fas fa-filter" aria-hidden="true" />
+                    <p style={{ margin: '0 0 0.25rem 0', fontWeight: 700, color: '#0F172A' }}>No matching studies</p>
+                    <span style={{ fontSize: '0.78rem', color: '#64748B' }}>Try clearing the search or switching filter tabs.</span>
+                    <button
+                      type="button"
+                      className="library-active-chip-clear-all"
+                      style={{ marginTop: '0.75rem' }}
+                      onClick={() => {
+                        setStudyFilterStatus('all');
+                        setStudySearch('');
+                        setStudyPage(1);
                       }}
                     >
-                      <div className="library-engagement-study-head">
-                        <span className={`library-dept-pill ${deptPillClass}`}>
-                          {study.department}
-                        </span>
-                        <span className="library-published-status-badge">
-                          <i className="fas fa-check-circle" aria-hidden="true" />
-                          Published {study.year}
-                        </span>
-                      </div>
+                      Reset Filter
+                    </button>
+                  </div>
+                ) : (
+                  paginatedStudies.map((study) => {
+                    const isSelected = study.id === activeStudy.id;
+                    const studyComments = commentsByProject.get(study.id) || [];
+                    const unansweredCount = studyComments.filter((c) => !c.librarianReply).length;
+                    const deptPillClass = getDeptPillClass(study.department);
 
-                      <h3 className="library-engagement-study-title">
-                        {study.title}
-                      </h3>
+                    return (
+                      <article
+                        key={study.id}
+                        className={`library-engagement-study-item ${isSelected ? 'is-selected' : ''}`}
+                        onClick={() => setActiveStudyId(study.id)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            setActiveStudyId(study.id);
+                          }
+                        }}
+                      >
+                        <div className="library-engagement-study-head">
+                          <span className={`library-dept-pill ${deptPillClass}`}>
+                            {study.department}
+                          </span>
+                          {unansweredCount > 0 ? (
+                            <span className="library-study-needs-reply-pill">
+                              <i className="fas fa-bell" aria-hidden="true" />
+                              {unansweredCount} {unansweredCount === 1 ? 'Needs Reply' : 'Need Reply'}
+                            </span>
+                          ) : studyComments.length > 0 ? (
+                            <span className="library-study-answered-pill">
+                              <i className="fas fa-check" aria-hidden="true" />
+                              Answered
+                            </span>
+                          ) : (
+                            <span className="library-study-quiet-pill">
+                              Published {study.year}
+                            </span>
+                          )}
+                        </div>
 
-                      <div className="library-engagement-study-meta">
-                        <span>{study.authorsShort || study.authors[0]}</span>
-                        <span style={{ color: '#CBD5E1' }}>•</span>
-                        <span>Adviser: {study.adviser}</span>
-                      </div>
+                        <h3 className="library-engagement-study-title" title={study.title}>
+                          {study.title}
+                        </h3>
 
-                      <div className="library-engagement-study-footer">
-                        <span className={`library-engagement-comment-pill ${studyComments.length === 0 ? 'has-none' : ''}`}>
-                          <i className="fas fa-comment-dots" aria-hidden="true" />
-                          {studyComments.length} {studyComments.length === 1 ? 'Viewer Comment' : 'Viewer Comments'}
-                        </span>
-                        <span className="library-browse-card-views">
-                          <i className="fas fa-eye" aria-hidden="true" />
-                          {study.views.toLocaleString()} reads
-                        </span>
-                      </div>
-                    </article>
-                  );
-                })
+                        <div className="library-engagement-study-meta">
+                          <span>{study.authorsShort || study.authors[0]}</span>
+                          <span style={{ color: '#CBD5E1' }}>•</span>
+                          <span>Adviser: {study.adviser}</span>
+                        </div>
+
+                        <div className="library-engagement-study-footer">
+                          <span className={`library-engagement-comment-pill ${studyComments.length === 0 ? 'has-none' : ''}`}>
+                            <i className="fas fa-comment-dots" aria-hidden="true" />
+                            {studyComments.length} {studyComments.length === 1 ? 'Comment' : 'Comments'}
+                          </span>
+                          <span className="library-browse-card-views">
+                            <i className="fas fa-eye" aria-hidden="true" />
+                            {study.views.toLocaleString()} reads
+                          </span>
+                        </div>
+                      </article>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Sidebar Footer with Pagination */}
+              {studyTotalPages > 1 && (
+                <div className="library-engagement-sidebar-footer">
+                  <span>
+                    Page {studyPage} of {studyTotalPages} ({processedStudies.length} total)
+                  </span>
+                  <div className="library-sidebar-page-btns">
+                    <button
+                      type="button"
+                      disabled={studyPage === 1}
+                      onClick={() => setStudyPage((p) => Math.max(1, p - 1))}
+                      aria-label="Previous page of studies"
+                    >
+                      <i className="fas fa-chevron-left" aria-hidden="true" /> Prev
+                    </button>
+                    <button
+                      type="button"
+                      disabled={studyPage === studyTotalPages}
+                      onClick={() => setStudyPage((p) => Math.min(studyTotalPages, p + 1))}
+                      aria-label="Next page of studies"
+                    >
+                      Next <i className="fas fa-chevron-right" aria-hidden="true" />
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
 

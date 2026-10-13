@@ -15,8 +15,6 @@ import {
 import { LibraryModal } from '@/components/library/library-primitives';
 import { LibraryShell } from '@/components/library/library-shell';
 
-const ITEMS_PER_PAGE = 6;
-
 const DEPARTMENTS: Array<{ key: 'all' | LibraryDepartment; label: string; fullTitle: string }> = [
   { key: 'all', label: 'All Departments', fullTitle: 'All Academic Departments' },
   { key: 'IT', label: 'IT', fullTitle: 'Information Technology' },
@@ -63,11 +61,13 @@ export function LibraryBrowse() {
   const [year, setYear] = useState<'all' | string>('all');
   const [projectType, setProjectType] = useState<'all' | LibraryProjectType>('all');
   const [sortBy, setSortBy] = useState<'views-desc' | 'year-desc' | 'year-asc' | 'title-asc'>('views-desc');
+  const [itemsPerPage, setItemsPerPage] = useState<number>(6);
   const [onlySaved, setOnlySaved] = useState(false);
   const [view, setView] = useState<'card' | 'table'>('card');
   const [currentPage, setCurrentPage] = useState(1);
   const [savedProjectIds, setSavedProjectIds] = useState<number[]>([]);
   const [previewProject, setPreviewProject] = useState<LibraryProject | null>(null);
+  const [copiedCitation, setCopiedCitation] = useState(false);
 
   // Initialize and persist saved bookmarks in localStorage
   useEffect(() => {
@@ -154,11 +154,11 @@ export function LibraryBrowse() {
     });
   }, [department, year, projectType, onlySaved, savedProjectIds, search, sortBy]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredProjects.length / ITEMS_PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(filteredProjects.length / itemsPerPage));
   const safeCurrentPage = Math.min(currentPage, totalPages);
   const paginatedProjects = filteredProjects.slice(
-    (safeCurrentPage - 1) * ITEMS_PER_PAGE,
-    safeCurrentPage * ITEMS_PER_PAGE
+    (safeCurrentPage - 1) * itemsPerPage,
+    safeCurrentPage * itemsPerPage
   );
 
   useEffect(() => {
@@ -183,6 +183,18 @@ export function LibraryBrowse() {
     setCurrentPage(1);
   }
 
+  function handleCopyCitation(project: LibraryProject) {
+    const authorText = project.authors.join(', ');
+    const deptFull = getDepartmentLabel(project.department);
+    const citation = `${authorText} (${project.year}). ${project.title}. University Institutional Research Repository, Department of ${deptFull}.`;
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(citation).then(() => {
+        setCopiedCitation(true);
+        setTimeout(() => setCopiedCitation(false), 2400);
+      });
+    }
+  }
+
   return (
     <LibraryShell
       activeNav="browse"
@@ -194,31 +206,34 @@ export function LibraryBrowse() {
         {/* Top Hero / Summary Banner */}
         <div className="library-browse-hero">
           <div className="library-browse-hero-text">
-            <h1>
-              <i className="fas fa-compass" style={{ color: '#003A8F' }} aria-hidden="true" />
-              Research Repository Catalog
-            </h1>
+            <span className="library-browse-hero-badge">
+              <i className="fas fa-compass" aria-hidden="true" />
+              Institutional Catalog
+            </span>
+            <h1>Explore Academic Research &amp; Theses</h1>
             <p>
-              Discover {LIBRARY_PROJECTS.length} peer-reviewed undergraduate theses, machine prototypes, and IoT deployments.
+              Discover {LIBRARY_PROJECTS.length} peer-reviewed undergraduate theses, machine prototypes, IoT systems, and capstone deployments across all academic departments.
             </p>
           </div>
           <div className="library-browse-hero-stats">
-            <span className="library-browse-stat-pill is-primary">
-              <i className="fas fa-layer-group" aria-hidden="true" />
-              {filteredProjects.length} {filteredProjects.length === 1 ? 'Project' : 'Projects'} Found
-            </span>
+            <div className="library-browse-stat-badge is-primary">
+              <i className="fas fa-file-lines" aria-hidden="true" />
+              <span>
+                <strong>{filteredProjects.length}</strong> {filteredProjects.length === 1 ? 'Study' : 'Studies'} Found
+              </span>
+            </div>
             <button
               type="button"
               onClick={() => {
                 setOnlySaved((prev) => !prev);
                 setCurrentPage(1);
               }}
-              className={`library-browse-stat-pill is-saved ${onlySaved ? 'is-active' : ''}`}
-              style={{ cursor: 'pointer', border: '1px solid #FDE68A' }}
-              title="Filter by your saved bookmarks"
+              className={`library-browse-stat-badge is-bookmark ${onlySaved ? 'is-active' : ''}`}
+              title={onlySaved ? 'Show all studies' : 'Filter by your saved bookmarks'}
             >
               <i className={onlySaved ? 'fas fa-bookmark' : 'far fa-bookmark'} aria-hidden="true" />
-              {savedProjectIds.length} Bookmarked {onlySaved ? '(Active)' : ''}
+              <span>{savedProjectIds.length} Saved</span>
+              {onlySaved && <span className="library-browse-badge-sub">Active</span>}
             </button>
           </div>
         </div>
@@ -248,7 +263,7 @@ export function LibraryBrowse() {
           })}
         </div>
 
-        {/* Search & Filter Toolbar */}
+        {/* Search & Filter Toolbar Card */}
         <div className="library-browse-controls-card">
           <div className="library-browse-controls-row">
             
@@ -258,7 +273,7 @@ export function LibraryBrowse() {
               <input
                 id="library-search"
                 type="text"
-                placeholder="Search by title, author, keyword, or adviser..."
+                placeholder="Search by title, author, adviser, keywords, or abstract..."
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
@@ -286,32 +301,9 @@ export function LibraryBrowse() {
             {/* Filter Selects Group */}
             <div className="library-browse-filter-select-group">
               
-              {/* Department Dropdown (Synchronized with tabs) */}
-              <div className="library-browse-select-wrap">
-                <i className="fas fa-building-columns library-browse-select-icon" aria-hidden="true" />
-                <select
-                  id="library-department"
-                  value={department}
-                  onChange={(e) => {
-                    setDepartment(e.target.value as 'all' | LibraryDepartment);
-                    setCurrentPage(1);
-                  }}
-                  className="library-browse-select"
-                  aria-label="Filter by department"
-                >
-                  <option value="all">All Departments</option>
-                  <option value="IT">IT - Information Technology</option>
-                  <option value="MET">MET - Manufacturing Engineering Tech</option>
-                  <option value="TCM">TCM - Tech Communication Management</option>
-                  <option value="ESM">ESM - Engineering & Sustainability</option>
-                  <option value="NAME">NAME - Naval Architecture & Marine Eng</option>
-                </select>
-                <i className="fas fa-chevron-down library-browse-select-caret" aria-hidden="true" />
-              </div>
-
               {/* Year Dropdown */}
               <div className="library-browse-select-wrap">
-                <i className="fas fa-calendar-alt library-browse-select-icon" aria-hidden="true" />
+                <i className="far fa-calendar-alt library-browse-select-icon" aria-hidden="true" />
                 <select
                   id="library-year"
                   value={year}
@@ -345,7 +337,7 @@ export function LibraryBrowse() {
                   className="library-browse-select"
                   aria-label="Filter by project type"
                 >
-                  <option value="all">All Project Types</option>
+                  <option value="all">All Types</option>
                   {PROJECT_TYPE_GROUPS.map((group) => (
                     <optgroup key={group.label} label={group.label}>
                       {group.types.map((type) => (
@@ -380,6 +372,26 @@ export function LibraryBrowse() {
                 <i className="fas fa-chevron-down library-browse-select-caret" aria-hidden="true" />
               </div>
 
+              {/* Items Per Page Dropdown */}
+              <div className="library-browse-select-wrap">
+                <i className="fas fa-list-ol library-browse-select-icon" aria-hidden="true" />
+                <select
+                  id="library-per-page"
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="library-browse-select"
+                  aria-label="Items per page"
+                >
+                  <option value={6}>6 per page</option>
+                  <option value={9}>9 per page</option>
+                  <option value={12}>12 per page</option>
+                </select>
+                <i className="fas fa-chevron-down library-browse-select-caret" aria-hidden="true" />
+              </div>
+
             </div>
 
             {/* Saved Only Toggle */}
@@ -390,10 +402,10 @@ export function LibraryBrowse() {
                 setOnlySaved((prev) => !prev);
                 setCurrentPage(1);
               }}
-              title="Show only bookmarked projects"
+              title="Filter by bookmarked projects"
             >
               <i className={onlySaved ? 'fas fa-bookmark' : 'far fa-bookmark'} aria-hidden="true" />
-              <span>Saved Only</span>
+              <span>Bookmarks ({savedProjectIds.length})</span>
             </button>
 
             {/* View Mode Toggle (Grid / Table) */}
@@ -403,6 +415,7 @@ export function LibraryBrowse() {
                 className={`library-browse-view-btn ${view === 'card' ? 'is-active' : ''}`}
                 onClick={() => setView('card')}
                 aria-pressed={view === 'card'}
+                title="Card grid view"
               >
                 <i className="fas fa-th-large" aria-hidden="true" />
                 <span>Grid</span>
@@ -412,6 +425,7 @@ export function LibraryBrowse() {
                 className={`library-browse-view-btn ${view === 'table' ? 'is-active' : ''}`}
                 onClick={() => setView('table')}
                 aria-pressed={view === 'table'}
+                title="Table list view"
               >
                 <i className="fas fa-table-list" aria-hidden="true" />
                 <span>Table</span>
@@ -491,7 +505,7 @@ export function LibraryBrowse() {
             <div className="library-browse-empty-icon">
               <i className="fas fa-folder-open" aria-hidden="true" />
             </div>
-            <h3 className="library-browse-empty-title">No matching projects found</h3>
+            <h3 className="library-browse-empty-title">No matching studies found</h3>
             <p className="library-browse-empty-subtitle">
               We couldn&apos;t find any research studies matching your active filters. Try refining your keywords or clearing current filters.
             </p>
@@ -560,9 +574,9 @@ export function LibraryBrowse() {
                           <i className="fas fa-users" aria-hidden="true" />
                           <span>{project.authors.join(', ')}</span>
                         </span>
-                        <span className="library-browse-card-views" title="Total verified reads">
-                          <i className="fas fa-eye" aria-hidden="true" />
-                          {project.views.toLocaleString()} views
+                        <span className="library-browse-card-meta-item" title={`Year ${project.year}`}>
+                          <i className="far fa-calendar-alt" aria-hidden="true" />
+                          <span>{project.year}</span>
                         </span>
                       </div>
                       <div className="library-browse-card-meta-row">
@@ -570,35 +584,37 @@ export function LibraryBrowse() {
                           <i className="fas fa-user-tie" aria-hidden="true" />
                           <span>Adviser: {project.adviser}</span>
                         </span>
-                        <span className="library-browse-card-meta-item">
-                          <i className="fas fa-calendar" aria-hidden="true" />
-                          <span>{project.year}</span>
+                        <span className="library-browse-card-views" title="Total verified reads">
+                          <i className="far fa-eye" aria-hidden="true" />
+                          {project.views.toLocaleString()} views
                         </span>
                       </div>
                     </div>
 
                     {/* Keywords tags */}
-                    <div className="library-browse-card-tags">
-                      {project.keywords.slice(0, 3).map((kw) => (
-                        <button
-                          key={kw}
-                          type="button"
-                          className="library-browse-tag-pill"
-                          onClick={() => {
-                            setSearch(kw);
-                            setCurrentPage(1);
-                          }}
-                          title={`Search for "${kw}"`}
-                        >
-                          #{kw}
-                        </button>
-                      ))}
-                      {project.keywords.length > 3 && (
-                        <span className="library-browse-tag-pill" style={{ opacity: 0.7 }}>
-                          +{project.keywords.length - 3} more
-                        </span>
-                      )}
-                    </div>
+                    {project.keywords.length > 0 && (
+                      <div className="library-browse-card-tags">
+                        {project.keywords.slice(0, 3).map((kw) => (
+                          <button
+                            key={kw}
+                            type="button"
+                            className="library-browse-tag-pill"
+                            onClick={() => {
+                              setSearch(kw);
+                              setCurrentPage(1);
+                            }}
+                            title={`Filter by tag "${kw}"`}
+                          >
+                            #{kw}
+                          </button>
+                        ))}
+                        {project.keywords.length > 3 && (
+                          <span className="library-browse-tag-pill is-more" title={project.keywords.slice(3).join(', ')}>
+                            +{project.keywords.length - 3} more
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Card Actions */}
@@ -606,17 +622,21 @@ export function LibraryBrowse() {
                     <button
                       type="button"
                       className="library-browse-quick-btn"
-                      onClick={() => setPreviewProject(project)}
+                      onClick={() => {
+                        setCopiedCitation(false);
+                        setPreviewProject(project);
+                      }}
                       title="Quick summary preview"
                     >
-                      <i className="fas fa-eye" aria-hidden="true" />
+                      <i className="far fa-eye" aria-hidden="true" />
                       <span>Preview</span>
                     </button>
                     <Link
                       href={`/library/project-details?id=${project.id}`}
                       className="library-browse-details-btn"
+                      title="Open full study details"
                     >
-                      <span>View Project</span>
+                      <span>View Study</span>
                       <i className="fas fa-arrow-right" aria-hidden="true" />
                     </Link>
                   </div>
@@ -634,11 +654,10 @@ export function LibraryBrowse() {
               <table className="library-browse-table">
                 <thead>
                   <tr>
-                    <th>Title & Abstract</th>
+                    <th>Title &amp; Abstract</th>
                     <th>Dept</th>
                     <th>Type</th>
-                    <th>Authors</th>
-                    <th>Adviser</th>
+                    <th>Authors &amp; Adviser</th>
                     <th>Year</th>
                     <th>Views</th>
                     <th style={{ textAlign: 'right' }}>Actions</th>
@@ -671,27 +690,28 @@ export function LibraryBrowse() {
                             {project.type}
                           </span>
                         </td>
-                        <td style={{ maxWidth: '180px', color: '#475569', fontSize: '0.85rem' }}>
-                          {project.authors.join(', ')}
-                        </td>
-                        <td style={{ color: '#475569', fontSize: '0.85rem' }}>
-                          {project.adviser}
+                        <td style={{ maxWidth: '200px' }}>
+                          <div className="library-browse-table-authors" title={project.authors.join(', ')}>
+                            {project.authors.join(', ')}
+                          </div>
+                          <div className="library-browse-table-adviser" title={`Adviser: ${project.adviser}`}>
+                            Adv: {project.adviser}
+                          </div>
                         </td>
                         <td style={{ fontWeight: 700, color: '#334155' }}>
                           {project.year}
                         </td>
                         <td>
                           <span className="library-browse-card-views">
-                            <i className="fas fa-eye" aria-hidden="true" />
+                            <i className="far fa-eye" aria-hidden="true" />
                             {project.views.toLocaleString()}
                           </span>
                         </td>
                         <td style={{ textAlign: 'right' }}>
-                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <div className="library-browse-table-actions">
                             <button
                               type="button"
                               className={`library-browse-bookmark-btn ${isSaved ? 'is-saved' : ''}`}
-                              style={{ width: '2rem', height: '2rem', fontSize: '0.8rem' }}
                               onClick={() => toggleSaved(project.id)}
                               title={isSaved ? 'Bookmarked' : 'Add bookmark'}
                             >
@@ -700,8 +720,11 @@ export function LibraryBrowse() {
                             <button
                               type="button"
                               className="library-browse-quick-btn"
-                              style={{ padding: '0.4rem 0.65rem', fontSize: '0.78rem' }}
-                              onClick={() => setPreviewProject(project)}
+                              style={{ height: '32px', padding: '0 0.65rem', fontSize: '0.78rem' }}
+                              onClick={() => {
+                                setCopiedCitation(false);
+                                setPreviewProject(project);
+                              }}
                               title="Quick Preview"
                             >
                               Preview
@@ -709,7 +732,7 @@ export function LibraryBrowse() {
                             <Link
                               href={`/library/project-details?id=${project.id}`}
                               className="library-browse-details-btn"
-                              style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem' }}
+                              style={{ height: '32px', padding: '0 0.75rem', fontSize: '0.78rem' }}
                             >
                               Details
                             </Link>
@@ -731,8 +754,8 @@ export function LibraryBrowse() {
             <span className="library-browse-pagination-info">
               Showing{' '}
               <strong>
-                {(safeCurrentPage - 1) * ITEMS_PER_PAGE + 1} -{' '}
-                {Math.min(safeCurrentPage * ITEMS_PER_PAGE, filteredProjects.length)}
+                {(safeCurrentPage - 1) * itemsPerPage + 1} -{' '}
+                {Math.min(safeCurrentPage * itemsPerPage, filteredProjects.length)}
               </strong>{' '}
               of <strong>{filteredProjects.length}</strong> projects
             </span>
@@ -790,7 +813,7 @@ export function LibraryBrowse() {
                 type="button"
                 className={`library-browse-bookmark-btn ${savedProjectIds.includes(previewProject.id) ? 'is-saved' : ''}`}
                 onClick={() => toggleSaved(previewProject.id)}
-                title="Bookmark project"
+                title={savedProjectIds.includes(previewProject.id) ? 'Bookmarked' : 'Add to bookmarks'}
               >
                 <i className={savedProjectIds.includes(previewProject.id) ? 'fas fa-bookmark' : 'far fa-bookmark'} aria-hidden="true" />
               </button>
@@ -816,7 +839,7 @@ export function LibraryBrowse() {
           <div className="library-preview-modal-body">
             
             <div className="library-preview-modal-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
+              <div className="library-preview-top-row">
                 <span className={`library-dept-pill ${getDeptPillClass(previewProject.department)}`}>
                   {previewProject.department} - {getDepartmentLabel(previewProject.department)}
                 </span>
@@ -824,12 +847,12 @@ export function LibraryBrowse() {
                   <i className={`fas ${getProjectIcon(previewProject.type)}`} aria-hidden="true" />
                   {previewProject.type}
                 </span>
-                <span style={{ marginLeft: 'auto', fontSize: '0.85rem', color: '#003A8F', fontWeight: 700 }}>
-                  <i className="fas fa-eye" style={{ marginRight: '0.3rem' }} aria-hidden="true" />
+                <span style={{ marginLeft: 'auto', fontSize: '0.82rem', color: '#003A8F', fontWeight: 700 }}>
+                  <i className="far fa-eye" style={{ marginRight: '0.3rem' }} aria-hidden="true" />
                   {previewProject.views.toLocaleString()} views
                 </span>
               </div>
-              <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#0F172A', lineHeight: 1.4 }}>
+              <h2 className="library-preview-title">
                 {previewProject.title}
               </h2>
             </div>
@@ -848,7 +871,7 @@ export function LibraryBrowse() {
                 <strong>{previewProject.year}</strong>
               </div>
               <div className="library-preview-meta-cell">
-                <span>Status</span>
+                <span>Repository Status</span>
                 <strong style={{ color: '#16A34A' }}>
                   {previewProject.statusLabel ?? 'Approved & Cataloged'}
                 </strong>
@@ -856,7 +879,7 @@ export function LibraryBrowse() {
             </div>
 
             <div>
-              <h4 style={{ margin: '0 0 0.4rem 0', fontSize: '0.85rem', textTransform: 'uppercase', color: '#64748B', fontWeight: 700 }}>
+              <h4 className="library-preview-section-title">
                 Abstract
               </h4>
               <div className="library-preview-abstract-box">
@@ -864,14 +887,34 @@ export function LibraryBrowse() {
               </div>
             </div>
 
+            {/* Quick APA Citation Box */}
+            <div>
+              <h4 className="library-preview-section-title">
+                Academic Citation (APA Style)
+              </h4>
+              <div className="library-preview-citation-box">
+                <div className="library-preview-citation-text">
+                  {previewProject.authors.join(', ')} ({previewProject.year}). {previewProject.title}. University Institutional Research Repository.
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleCopyCitation(previewProject)}
+                  className={`library-preview-citation-btn ${copiedCitation ? 'is-copied' : ''}`}
+                >
+                  <i className={`fas ${copiedCitation ? 'fa-check' : 'fa-copy'}`} aria-hidden="true" />
+                  <span>{copiedCitation ? 'Copied!' : 'Copy Citation'}</span>
+                </button>
+              </div>
+            </div>
+
             {previewProject.keywords?.length > 0 && (
               <div>
-                <h4 style={{ margin: '0 0 0.4rem 0', fontSize: '0.85rem', textTransform: 'uppercase', color: '#64748B', fontWeight: 700 }}>
-                  Keywords & Classification
+                <h4 className="library-preview-section-title">
+                  Keywords &amp; Classification
                 </h4>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                   {previewProject.keywords.map((kw) => (
-                    <span key={kw} className="library-browse-tag-pill" style={{ padding: '0.3rem 0.65rem', fontSize: '0.78rem' }}>
+                    <span key={kw} className="library-browse-tag-pill" style={{ padding: '0.25rem 0.6rem', fontSize: '0.78rem' }}>
                       #{kw}
                     </span>
                   ))}
@@ -881,8 +924,8 @@ export function LibraryBrowse() {
 
             {previewProject.technologies && previewProject.technologies.length > 0 && (
               <div>
-                <h4 style={{ margin: '0 0 0.4rem 0', fontSize: '0.85rem', textTransform: 'uppercase', color: '#64748B', fontWeight: 700 }}>
-                  Technologies & Materials
+                <h4 className="library-preview-section-title">
+                  Technologies &amp; Materials
                 </h4>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                   {previewProject.technologies.map((tech) => (

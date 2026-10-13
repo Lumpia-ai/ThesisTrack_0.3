@@ -16,6 +16,10 @@ import {
 } from '@/components/library/library-data';
 import { LibraryModal } from '@/components/library/library-primitives';
 import { LibraryShell } from '@/components/library/library-shell';
+import {
+  LibraryClearanceSlipModal,
+  type ClearanceData
+} from '@/components/library/library-clearance-slip-modal';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -58,6 +62,7 @@ export function LibraryRepository() {
   const [viewMode, setViewMode] = useState<'scholar' | 'cards' | 'table'>('scholar');
   const [currentPage, setCurrentPage] = useState(1);
   const [activeProjectId, setActiveProjectId] = useState<number | null>(null);
+  const [clearanceModalData, setClearanceModalData] = useState<ClearanceData | null>(null);
 
   const availableYears = useMemo(
     () => Array.from(new Set(LIBRARY_PROJECTS.map((project) => String(project.year)))).sort((a, b) => Number(b) - Number(a)),
@@ -164,6 +169,21 @@ export function LibraryRepository() {
               <i className="fas fa-layer-group" aria-hidden="true" />
               {filteredProjects.length} {filteredProjects.length === 1 ? 'Study' : 'Studies'} Found
             </span>
+            <Link
+              href="/library/approval"
+              className="library-browse-stat-pill"
+              style={{
+                background: '#EFF6FF',
+                color: '#003A8F',
+                border: '1.5px solid #BFDBFE',
+                textDecoration: 'none',
+                fontWeight: 700
+              }}
+              title="Review validated manuscripts waiting for archival approval"
+            >
+              <i className="fas fa-clipboard-check" aria-hidden="true" />
+              <span>Approval Queue</span>
+            </Link>
             <span className="library-published-status-badge" style={{ fontSize: '0.82rem', padding: '0.45rem 0.85rem' }}>
               <i className="fas fa-check-circle" aria-hidden="true" />
               <span>Auto-Archived on Completion</span>
@@ -919,8 +939,67 @@ export function LibraryRepository() {
               </div>
             )}
 
+            {/* Archival Clearance Verification Banner */}
+            <div
+              style={{
+                marginTop: '1.25rem',
+                padding: '0.9rem 1.15rem',
+                background: '#F8FAFC',
+                border: '1px solid #E2E8F0',
+                borderRadius: '0.65rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '1rem',
+                flexWrap: 'wrap'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <i className="fas fa-certificate" style={{ color: '#003A8F', fontSize: '1.25rem' }} aria-hidden="true" />
+                <div>
+                  <strong style={{ color: '#0F172A', fontSize: '0.86rem', display: 'block' }}>
+                    Institutional Archival Clearance
+                  </strong>
+                  <span style={{ color: '#64748B', fontSize: '0.76rem' }}>
+                    Accession Ref: LIB-{activeProject.year}-{activeProject.department}-{String(activeProject.id).padStart(3, '0')} · Formally cleared for degree conferment
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="library-approval-clearance-btn"
+                onClick={() => {
+                  setClearanceModalData({
+                    serialNumber: `CLR-${activeProject.year}-${activeProject.department}-${String(activeProject.id).padStart(3, '0')}`,
+                    submissionId: `CAP-${activeProject.department}-${activeProject.year}-${String(activeProject.id).padStart(3, '0')}`,
+                    callNumber: `LIB-${activeProject.year}-${activeProject.department}-${String(activeProject.id).padStart(3, '0')}`,
+                    title: activeProject.detailTitle || activeProject.title,
+                    authors: activeProject.authors,
+                    department: activeProject.department,
+                    adviser: activeProject.adviser,
+                    projectType: activeProject.type,
+                    validatedBy: 'Engr. Lara Mercado (Research Focal Person)',
+                    archivedAt: `Academic Year ${activeProject.year}`,
+                    librarianName: 'Dr. Patricia E. Alcantara, RL'
+                  });
+                }}
+              >
+                <i className="fas fa-file-invoice" aria-hidden="true" />
+                <span>View Clearance Slip</span>
+              </button>
+            </div>
+
           </div>
         </LibraryModal>
+      )}
+
+      {/* Digital Library Clearance Slip Modal */}
+      {clearanceModalData && (
+        <LibraryClearanceSlipModal
+          clearance={clearanceModalData}
+          onClose={() => setClearanceModalData(null)}
+        />
       )}
 
     </LibraryShell>

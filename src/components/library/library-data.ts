@@ -87,6 +87,7 @@ export const LIBRARY_NAV_ITEMS = [
   { key: 'dashboard', href: '/library/dashboard', label: 'Dashboard', icon: 'fa-tachometer-alt' },
   { key: 'browse', href: '/library/browse', label: 'Browse Projects', icon: 'fa-search' },
   { key: 'repository', href: '/library/repository', label: 'Repository', icon: 'fa-folder-open' },
+  { key: 'approval', href: '/library/approval', label: 'Repository Approval', icon: 'fa-clipboard-check' },
   { key: 'engagement', href: '/library/engagement', label: 'Views & Comments', icon: 'fa-eye' }
 ] as const;
 
